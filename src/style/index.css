@@ -36,7 +36,7 @@
     overflow-y: clip;
 }
 
-.daily-note-view .daily-note::before {
+.daily-note-view .daily-note-container::before {
     content : "";
     display: block;
     height  : 1px;
@@ -47,6 +47,6 @@
     background-color: var(--color-base-25);
 }
 
-.daily-note-view .daily-note:first-child::before {
+.daily-note-view .daily-note-container:first-child::before {
     height  : 0px;
 }
