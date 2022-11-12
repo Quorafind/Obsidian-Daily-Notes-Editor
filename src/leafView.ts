@@ -180,7 +180,7 @@ export class DailyNoteEditor extends nosuper(HoverPopover) {
     }
 
     getDefaultMode() {
-        return this.parent?.view?.getMode ? this.parent.view.getMode() : "preview";
+        return this.parent?.view?.getMode ? this.parent.view.getMode() : "source";
     }
 
     updateLeaves() {
