@@ -4,9 +4,11 @@ import { svelte } from '@sveltejs/vite-plugin-svelte';
 import autoPreprocess from 'svelte-preprocess';
 import builtins from 'builtin-modules';
 
-const prod = (process.argv[2] === 'production');
+// const prod = (process.argv[2] === 'production');
 
-export default defineConfig(() => {
+export default defineConfig((config) => {
+    console.log(config.mode);
+    const prod = (config.mode === 'production');
     return {
         plugins: [
             svelte({
@@ -22,7 +24,7 @@ export default defineConfig(() => {
                 ignoreTryCatch: false,
             },
             lib: {
-                entry: path.resolve(__dirname, './src/starterIndex.ts'),
+                entry: path.resolve(__dirname, './src/dailyNoteViewIndex.ts'),
                 formats: ['cjs'],
             },
             css: {},

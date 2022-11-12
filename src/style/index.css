@@ -1,0 +1,52 @@
+.dn-editor {
+    /*overflow-y: hidden;*/
+}
+
+.dn-editor .cm-scroller {
+    /*overflow-y: hidden;*/
+    padding: unset;
+}
+
+.dn-editor .workspace-leaf {
+    all: unset;
+}
+.dn-editor .dn-content {
+    margin: 0;
+    border-radius: var(--he-popover-border-radius);
+    overflow: hidden;
+    height: 100%;
+}
+.dn-editor .workspace-leaf,
+.dn-editor .workspace-split {
+    height: 100%;
+    width: 100%;
+}
+.dn-editor .markdown-source-view.mod-cm6 .cm-editor {
+    min-height: auto;
+}
+.dn-editor .cm-content {
+    padding-bottom: 0 !important;
+    padding-top: 0 !important;
+}
+.dn-editor .view-content {
+    background: none !important;
+}
+.dn-editor .cm-scroller {
+    padding: 0 !important;
+    overflow-y: clip;
+}
+
+.daily-note-view .daily-note::before {
+    content : "";
+    display: block;
+    height  : 1px;
+    width   : var(--file-line-width);
+    margin-bottom: 30px;
+    margin-left: auto;
+    margin-right: auto;
+    background-color: var(--color-base-25);
+}
+
+.daily-note-view .daily-note:first-child::before {
+    height  : 0px;
+}
