@@ -10,6 +10,7 @@ env:
 jobs:
     build:
         runs-on: ubuntu-latest
+        using: 'node16'
         steps:
             - uses: actions/checkout@v2
             - name: Use Node.js
@@ -20,7 +21,7 @@ jobs:
               id: build
               run: |
                   npm install
-                  npm run build:prod
+                  npm run build
                   mkdir ${{ env.PLUGIN_NAME }}
                   cp main.js manifest.json styles.css ${{ env.PLUGIN_NAME }}
                   zip -r ${{ env.PLUGIN_NAME }}.zip ${{ env.PLUGIN_NAME }}
