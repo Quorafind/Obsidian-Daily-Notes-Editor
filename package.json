@@ -1,7 +1,7 @@
 {
   "name": "daily-note-editor",
-  "version": "1.0.3",
-  "description": "A plugin development template for devs who want to use svelte in Obsidian.",
+  "version": "0.0.1",
+  "description": "A plugin for edit daily notes in one page(inline), which works similar to Roam Research's default daily note view.",
   "main": "main.js",
   "scripts": {
     "lint": "eslint . --ext .ts",
