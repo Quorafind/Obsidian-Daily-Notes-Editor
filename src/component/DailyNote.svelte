@@ -11,22 +11,35 @@
     let editorEl: HTMLElement;
     let title: string;
 
-    let rendered = false;
+    let cachedFile: TFile;
+
+    let rendered: boolean = false;
+    let id: string;
 
     let createdLeaf: WorkspaceLeaf;
 
     $: if(file && editorEl) {
         showEditor();
+        id = genId(8);
+    }
+
+    function genId(size: number): string {
+        const chars = [];
+        for (let n = 0; n < size; n++) chars.push(((16 * Math.random()) | 0).toString(16));
+        return chars.join("");
     }
 
     function showEditor() {
+        if(!(file instanceof TFile)) return;
+
         if(rendered) return;
+
+        title = file.basename;
+
         createdLeaf = spawnLeafView(plugin, editorEl, leaf);
         createdLeaf.setPinned(true);
-        if(file instanceof TFile) {
-            createdLeaf.openFile(file, {active: false, state: {mode: "source"}});
-            title = file.basename;
-        }
+
+        createdLeaf.openFile(file, {active: false, state: {mode: "source"}});
         rendered = true;
     }
 
@@ -53,14 +66,14 @@
     }
 </script>
 
-<div class="daily-note-container">
+<div class="daily-note-container" aria-label='dn-editor-{id}'>
     <div class="daily-note">
         {#if title}
             <div class="daily-note-title" on:click={handleClick} aria-hidden="true">
                 {title}
             </div>
         {/if}
-        <div class="daily-note-editor" bind:this={editorEl}></div>
+        <div class="daily-note-editor" bind:this={editorEl} aria-label={title}></div>
     </div>
     <div use:inview={{}} on:leave={hideHandler} on:enter={showHandler} />
 </div>
