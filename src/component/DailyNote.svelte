@@ -11,8 +11,6 @@
     let editorEl: HTMLElement;
     let title: string;
 
-    let cachedFile: TFile;
-
     let rendered: boolean = false;
     let id: string;
 
