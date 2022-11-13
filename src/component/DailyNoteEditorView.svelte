@@ -113,6 +113,7 @@
             });
         }
 
+        // @ts-ignore
         if(fileDate.isSame(moment(), 'day')) hasCurrentDay = true;
     }
 
