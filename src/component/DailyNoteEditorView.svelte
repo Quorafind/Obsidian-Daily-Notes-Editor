@@ -1,8 +1,8 @@
 <script lang="ts">
     import type DailyNoteViewPlugin from "../dailyNoteViewIndex";
     import type {  WorkspaceLeaf } from "obsidian";
-    import { TFile } from "obsidian";
-    import { moment } from "obsidian";
+
+    import { TFile, moment } from "obsidian";
     import DailyNote from "./DailyNote.svelte";
     import { inview } from "svelte-inview";
     import { getAllDailyNotes, getDailyNote, createDailyNote } from 'obsidian-daily-notes-interface';
@@ -29,6 +29,7 @@
     }
 
     function checkDailyNote() {
+        // @ts-ignore
         const currentDate = moment();
         const currentDailyNote = getDailyNote(currentDate, cacheDailyNotes);
         if(!currentDailyNote) {
@@ -37,12 +38,14 @@
     }
 
     async function createNewDailyNote() {
+        // @ts-ignore
         const currentDate = moment();
         if(!hasCurrentDay) {
             const currentDailyNote = await createDailyNote(currentDate);
             if(currentDailyNote instanceof TFile) renderedDailyNotes.push(currentDailyNote);
 
             renderedDailyNotes = renderedDailyNotes.sort((a, b) => {
+                // @ts-ignore
                 return parseInt(moment(b.basename).format('x')) - parseInt(moment(a.basename).format('x'));
             });
             console.log(renderedDailyNotes);

@@ -3,6 +3,7 @@ lockfileVersion: 5.4
 specifiers:
   '@sveltejs/vite-plugin-svelte': ^1.0.1
   '@tsconfig/svelte': ^3.0.0
+  '@types/moment': ^2.13.0
   '@types/node': ^16.11.6
   '@typescript-eslint/eslint-plugin': 5.32.0
   '@typescript-eslint/parser': 5.32.0
@@ -26,6 +27,7 @@ dependencies:
 devDependencies:
   '@sveltejs/vite-plugin-svelte': 1.1.0_svelte@3.52.0+vite@3.2.3
   '@tsconfig/svelte': 3.0.0
+  '@types/moment': 2.13.0
   '@types/node': 16.18.3
   '@typescript-eslint/eslint-plugin': 5.32.0_flyjac5w3lfsfpyl6mm7wbgjlq
   '@typescript-eslint/parser': 5.32.0_2uhzae5rel2qyw7fhfmxrmdt3q
@@ -174,6 +176,13 @@ packages:
 
   /@types/json-schema/7.0.11:
     resolution: {integrity: sha512-wOuvG1SN4Us4rez+tylwwwCV1psiNVOkJeM3AUWUNWg/jDQY2+HE/444y5gc+jBmRqASOm2Oeh5c1axHobwRKQ==}
+    dev: true
+
+  /@types/moment/2.13.0:
+    resolution: {integrity: sha512-DyuyYGpV6r+4Z1bUznLi/Y7HpGn4iQ4IVcGn8zrr1P4KotKLdH0sbK1TFR6RGyX6B+G8u83wCzL+bpawKU/hdQ==}
+    deprecated: This is a stub types definition for Moment (https://github.com/moment/moment). Moment provides its own type definitions, so you don't need @types/moment installed!
+    dependencies:
+      moment: 2.29.4
     dev: true
 
   /@types/node/16.18.3:
