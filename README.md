@@ -1,43 +1,33 @@
-# obsidian-svelte-starter
+<p align="center">
+<img src="https://raw.githubusercontent.com/Quorafind/Obsidian-Daily-Notes-View/master/image/daily-note.svg" height="160px">
+</p>
 
-A starter template for creating an Obsidian plugin with SvelteJS.
+# Daily Notes Editor
+
+A plugin for you to edit a bunch of daily notes in one page(inline), which works similar to Roam Research's default daily note view.
 
 # Features
 
-This project comes preconfigured with [Typescript](https://www.typescriptlang.org/), [vite](https://vitejs.dev), and
-[Rollup.js](https://rollupjs.org).
+- Open a daily note editor page to edit a bunch of daily notes in one page/inline.
+  - You can open it from command.
+  - You can open it from left ribbon.
 
-# Getting Started
+# Thanks
 
-Click "use this template" to create your own fork of this repo. Make sure to reference the official sample plugin for
-information about how to get started with the Obsidian API and how to submit your plugin to the Community Plugin
-Gallery.
+- [Hover Editor](https://github.com/nothingislost/obsidian-hover-editor): I use code from this plugin to generate workspace leaf in my view.
+- [Obsidian Daily Notes Interface](https://github.com/liamcain/obsidian-daily-notes-interface): I use code from this api to get all dailynotes and generate daily note.
+- [Make.md](https://www.make.md/): inspired me to create this plugin.
 
-```bash
-# for local development
-npm install
-npm run dev
-// Or yarn dev
+# Say Thank You
 
-# for a production bundle
-npm install
-npm run build
-// Or yarn build
+Please say thank you to NothingisLost && pjeby from [Hover Editor](https://github.com/nothingislost/obsidian-hover-editor)
 
-# change version
-npm bumpversion
-// Or yarn bumpversion
-```
+And [Make.md](https://www.make.md/) works with more features than this plugin, please consider to use it.
 
-# Stats
+---
 
-The production output of this sample plugin is ~10 KB.
+If you still feel generous and enjoy this plugin then please support my work and enthusiasm by buying me a coffee
+on [https://www.buymeacoffee.com/boninall](https://www.buymeacoffee.com/boninall).
 
-```
-./styles.css   0.44 KiB / gzip: 0.19 KiB
-./main.js      12.63 KiB / gzip: 3.70 KiB
-```
+<a href="https://www.buymeacoffee.com/boninall"><img src="https://img.buymeacoffee.com/button-api/?text=Buy me a coffee&emoji=&slug=boninall&button_colour=6495ED&font_colour=ffffff&font_family=Lato&outline_colour=000000&coffee_colour=FFDD00"></a>
 
-## API Documentation
-
-See https://github.com/obsidianmd/obsidian-api

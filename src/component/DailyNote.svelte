@@ -24,7 +24,7 @@
         createdLeaf = spawnLeafView(plugin, editorEl, leaf);
         createdLeaf.setPinned(true);
         if(file instanceof TFile) {
-            createdLeaf.openFile(file, {active: false});
+            createdLeaf.openFile(file, {active: false, state: {mode: "source"}});
             title = file.basename;
         }
         rendered = true;

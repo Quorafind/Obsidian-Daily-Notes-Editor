@@ -1,9 +1,9 @@
 {
-	"id": "daily-note-editor",
+	"id": "daily-notes-editor",
 	"name": "Daily Notes Editor",
-	"version": "0.0.1",
+	"version": "0.0.6",
 	"minAppVersion": "0.15.0",
-	"description": "A plugin for edit daily notes in one page(inline), which works similar to Roam Research's default daily note view.",
+	"description": "A plugin for you to edit a bunch of daily notes in one page(inline), which works similar to Roam Research's default daily note view.",
 	"author": "Quorafind",
 	"authorUrl": "https://obsidian.md",
 	"isDesktopOnly": false

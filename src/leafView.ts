@@ -180,7 +180,8 @@ export class DailyNoteEditor extends nosuper(HoverPopover) {
     }
 
     getDefaultMode() {
-        return this.parent?.view?.getMode ? this.parent.view.getMode() : "preview";
+        // return this.parent?.view?.getMode ? this.parent.view.getMode() : "source";
+        return "source";
     }
 
     updateLeaves() {
@@ -403,6 +404,7 @@ export class DailyNoteEditor extends nosuper(HoverPopover) {
         // will call us again when it finishes.
         if (this.opening) return;
 
+        // Leave this code here to observe the state of the leaves
         const leaves = this.leaves();
         if (leaves.length) {
             // Detach all leaves before we unload the popover and remove it from the DOM.
@@ -419,9 +421,7 @@ export class DailyNoteEditor extends nosuper(HoverPopover) {
 
     nativeHide() {
         const { hoverEl, targetEl } = this;
-
         this.state = PopoverState.Hidden;
-
         hoverEl.detach();
 
         if (targetEl) {

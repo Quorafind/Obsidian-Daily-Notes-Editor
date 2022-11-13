@@ -1,7 +1,7 @@
 {
-  "name": "daily-note-editor",
-  "version": "0.0.1",
-  "description": "A plugin for edit daily notes in one page(inline), which works similar to Roam Research's default daily note view.",
+  "name": "daily-notes-editor",
+  "version": "0.0.6",
+  "description": "A plugin for you to edit a bunch of daily notes in one page(inline), which works similar to Roam Research's default daily note view.",
   "main": "main.js",
   "scripts": {
     "lint": "eslint . --ext .ts",

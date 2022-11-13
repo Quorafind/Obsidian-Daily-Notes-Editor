@@ -6,12 +6,13 @@ import {
     Setting, TFile,
     Workspace,
     WorkspaceContainer, WorkspaceItem,
-    WorkspaceLeaf
+    WorkspaceLeaf, addIcon
 } from 'obsidian';
 import DailyNoteEditorView from "./component/DailyNoteEditorView.svelte";
 import { around } from "monkey-around";
 import { DailyNoteEditor, isDailyNoteLeaf } from "./leafView";
 import "./style/index.css";
+import { addIconList } from "./utils/icon";
 
 export const DAILY_NOTE_VIEW_TYPE = "daily-note-editor-view";
 
@@ -33,7 +34,7 @@ class DailyNoteView extends ItemView {
     }
 
     getIcon(): string {
-        return "calendar";
+        return "daily-note";
     }
 
     async onOpen(): Promise<void> {
@@ -50,6 +51,7 @@ export default class DailyNoteViewPlugin extends Plugin {
     async onload() {
         this.patchWorkspace();
         this.patchWorkspaceLeaf();
+        addIconList();
 
         this.registerView(
             DAILY_NOTE_VIEW_TYPE,
@@ -58,7 +60,7 @@ export default class DailyNoteViewPlugin extends Plugin {
 
         this.app.workspace.onLayoutReady(this.onLayoutReady.bind(this));
 
-        this.addRibbonIcon('calendar', 'Open Daily Note Editor', (evt: MouseEvent) => this.openDailyNoteEditor());
+        this.addRibbonIcon('daily-note', 'Open Daily Note Editor', (evt: MouseEvent) => this.openDailyNoteEditor());
         this.addCommand({
             id: 'open-daily-note-editor',
             name: 'Open Daily Note Editor',
