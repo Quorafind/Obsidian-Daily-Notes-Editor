@@ -1,8 +1,9 @@
 <script lang="ts">
     import type DailyNoteViewPlugin from "../dailyNoteViewIndex";
     import { TAbstractFile, TFile, WorkspaceLeaf } from "obsidian";
-    import { spawnLeafView } from "../leafView";
+    import { DailyNoteEditor, spawnLeafView } from "../leafView";
     import { inview } from "svelte-inview";
+    import { onMount } from "svelte";
 
     export let file: TAbstractFile;
     export let plugin: DailyNoteViewPlugin;
@@ -15,8 +16,9 @@
     let id: string;
 
     let createdLeaf: WorkspaceLeaf;
+    let dnEditor: DailyNoteEditor;
 
-    $: if(file && editorEl) {
+    $: if(editorEl) {
         showEditor();
         id = genId(8);
     }
@@ -29,12 +31,11 @@
 
     function showEditor() {
         if(!(file instanceof TFile)) return;
-
         if(rendered) return;
 
         title = file.basename;
 
-        createdLeaf = spawnLeafView(plugin, editorEl, leaf);
+        [createdLeaf, dnEditor] = spawnLeafView(plugin, editorEl, leaf);
         createdLeaf.setPinned(true);
 
         createdLeaf.openFile(file, {active: false, state: {mode: "source"}});
@@ -52,7 +53,7 @@
         const { scrollDirection } = event.detail;
         if(scrollDirection.vertical === "up") {
             rendered = false;
-            editorEl.empty();
+            dnEditor.hide();
         }
     }
 
@@ -73,7 +74,7 @@
         {/if}
         <div class="daily-note-editor" bind:this={editorEl} aria-label={title}></div>
     </div>
-    <div use:inview={{}} on:leave={hideHandler} on:enter={showHandler} />
+    <div use:inview={{rootMargin: "20%"}} on:leave={hideHandler} on:enter={showHandler}/>
 </div>
 <!--<div class="dn-card">-->
 <!--    -->

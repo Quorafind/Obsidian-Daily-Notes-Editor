@@ -50,7 +50,7 @@ function nosuper<T>(base: new (...args: unknown[]) => T): new () => T {
     return Object.setPrototypeOf(derived, base);
 }
 
-export const spawnLeafView = (plugin: DailyNoteViewPlugin, initiatingEl?: HTMLElement, leaf?: WorkspaceLeaf, onShowCallback?: () => unknown): WorkspaceLeaf => {
+export const spawnLeafView = (plugin: DailyNoteViewPlugin, initiatingEl?: HTMLElement, leaf?: WorkspaceLeaf, onShowCallback?: () => unknown): [WorkspaceLeaf, DailyNoteEditor] => {
     // When Obsidian doesn't set any leaf active, use leaf instead.
     let parent = app.workspace.activeLeaf as unknown as DailyNoteEditorParent;
     if (!parent) parent = leaf as unknown as DailyNoteEditorParent;
@@ -58,7 +58,7 @@ export const spawnLeafView = (plugin: DailyNoteViewPlugin, initiatingEl?: HTMLEl
     if (!initiatingEl) initiatingEl = parent?.containerEl;
 
     const hoverPopover = new DailyNoteEditor(parent, initiatingEl!, plugin, undefined, onShowCallback);
-    return hoverPopover.attachLeaf();
+    return [hoverPopover.attachLeaf(), hoverPopover];
 
 }
 
@@ -410,7 +410,9 @@ export class DailyNoteEditor extends nosuper(HoverPopover) {
             // Detach all leaves before we unload the popover and remove it from the DOM.
             // Each leaf.detach() will trigger layout-changed and the updateLeaves()
             // method will then call hide() again when the last one is gone.
-            leaves.forEach(leaf => leaf.detach());
+            // leaves[0].detach();
+            leaves[0].detach();
+            // this.targetEl.empty();
         } else {
             this.parent = null;
             this.abortController?.unload();
