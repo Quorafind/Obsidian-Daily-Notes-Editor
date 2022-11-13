@@ -6,7 +6,7 @@ import {
     Setting, TFile,
     Workspace,
     WorkspaceContainer, WorkspaceItem,
-    WorkspaceLeaf, addIcon
+    WorkspaceLeaf, addIcon, TAbstractFile
 } from 'obsidian';
 import DailyNoteEditorView from "./component/DailyNoteEditorView.svelte";
 import { around } from "monkey-around";
@@ -37,9 +37,19 @@ class DailyNoteView extends ItemView {
         return "daily-note";
     }
 
+    onFileCreate = (file: TAbstractFile)=> {
+        if(file instanceof TFile) this.view.fileCreate(file);
+    }
+
+    onFileDelete = (file: TAbstractFile)=> {
+        if(file instanceof TFile) this.view.fileDelete(file);
+    };
+
     async onOpen(): Promise<void> {
 
         this.view = new DailyNoteEditorView({ target: this.contentEl, props: { plugin: this.plugin , leaf: this.leaf} });
+        this.app.vault.on("create", this.onFileCreate);
+        this.app.vault.on("delete", this.onFileDelete);
         this.app.workspace.onLayoutReady(this.view.tick.bind(this));
     }
 }
@@ -53,27 +63,13 @@ export default class DailyNoteViewPlugin extends Plugin {
         this.patchWorkspaceLeaf();
         addIconList();
 
-        this.registerView(
-            DAILY_NOTE_VIEW_TYPE,
-            (leaf: WorkspaceLeaf) => (this.view = new DailyNoteView(leaf, this))
-        );
-
-        this.app.workspace.onLayoutReady(this.onLayoutReady.bind(this));
+        this.registerView(DAILY_NOTE_VIEW_TYPE, (leaf: WorkspaceLeaf) => (this.view = new DailyNoteView(leaf, this)));
 
         this.addRibbonIcon('daily-note', 'Open Daily Note Editor', (evt: MouseEvent) => this.openDailyNoteEditor());
         this.addCommand({
             id: 'open-daily-note-editor',
             name: 'Open Daily Note Editor',
             callback: () => this.openDailyNoteEditor(),
-        });
-    }
-
-    onLayoutReady(): void {
-        if (this.app.workspace.getLeavesOfType(DAILY_NOTE_VIEW_TYPE).length) {
-            return;
-        }
-        this.app.workspace.getLeaf().setViewState({
-            type: DAILY_NOTE_VIEW_TYPE,
         });
     }
 
@@ -84,7 +80,7 @@ export default class DailyNoteViewPlugin extends Plugin {
     async openDailyNoteEditor() {
         const workspace = this.app.workspace;
         workspace.detachLeavesOfType(DAILY_NOTE_VIEW_TYPE);
-        const leaf = workspace.getLeaf();
+        const leaf = workspace.getLeaf(true);
         await leaf.setViewState({ type: DAILY_NOTE_VIEW_TYPE });
         workspace.revealLeaf(leaf);
     }
@@ -126,17 +122,6 @@ export default class DailyNoteViewPlugin extends Plugin {
                     return false;
                 };
             },
-            getDropLocation(old) {
-                return function getDropLocation(event: MouseEvent) {
-                    for (const popover of DailyNoteEditor.activePopovers()) {
-                        const dropLoc = this.recursiveGetTarget(event, popover.rootSplit);
-                        if (dropLoc) {
-                            return dropLoc;
-                        }
-                    }
-                    return old.call(this, event);
-                };
-            },
             onDragLeaf(old) {
                 return function (event: MouseEvent, leaf: WorkspaceLeaf) {
                     // const hoverPopover = DailyNoteEditor.forLeaf(leaf);
@@ -154,7 +139,7 @@ export default class DailyNoteViewPlugin extends Plugin {
                 getRoot(old) {
                     return function () {
                         const top = old.call(this);
-                        return top.getRoot === this.getRoot ? top : top.getRoot();
+                        return top?.getRoot === this.getRoot ? top : top?.getRoot();
                     };
                 },
                 setPinned(old) {
@@ -171,7 +156,6 @@ export default class DailyNoteViewPlugin extends Plugin {
                                     recordMostRecentOpenedFile(old) {
                                         return function (_file: TFile) {
                                             // Don't update the quick switcher's recent list
-                                            console.log(_file, file);
                                             if (_file !== file) {
                                                 return old.call(this, _file);
                                             }

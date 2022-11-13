@@ -1,45 +1,43 @@
 lockfileVersion: 5.4
 
 specifiers:
-  '@sveltejs/vite-plugin-svelte': ^1.0.1
+  '@sveltejs/vite-plugin-svelte': ^1.1.1
   '@tsconfig/svelte': ^3.0.0
-  '@types/moment': ^2.13.0
-  '@types/node': ^16.11.6
+  '@types/node': ^16.18.3
   '@typescript-eslint/eslint-plugin': 5.32.0
   '@typescript-eslint/parser': 5.32.0
   builtin-modules: 3.3.0
-  eslint: ^8.21.0
+  eslint: ^8.27.0
   eslint-plugin-svelte3: ^4.0.0
   monkey-around: ^2.3.0
   obsidian: latest
   obsidian-daily-notes-interface: ^0.9.4
-  svelte: ^3.49.0
-  svelte-check: ^2.8.0
+  svelte: ^3.53.1
+  svelte-check: ^2.9.2
   svelte-inview: ^3.0.1
   svelte-preprocess: ^4.10.7
   tslib: 2.4.0
   typescript: 4.7.4
-  vite: ^3.0.0
+  vite: ^3.2.3
 
 dependencies:
   monkey-around: 2.3.0
 
 devDependencies:
-  '@sveltejs/vite-plugin-svelte': 1.1.0_svelte@3.52.0+vite@3.2.3
+  '@sveltejs/vite-plugin-svelte': 1.1.1_svelte@3.53.1+vite@3.2.3
   '@tsconfig/svelte': 3.0.0
-  '@types/moment': 2.13.0
   '@types/node': 16.18.3
   '@typescript-eslint/eslint-plugin': 5.32.0_flyjac5w3lfsfpyl6mm7wbgjlq
   '@typescript-eslint/parser': 5.32.0_2uhzae5rel2qyw7fhfmxrmdt3q
   builtin-modules: 3.3.0
   eslint: 8.27.0
-  eslint-plugin-svelte3: 4.0.0_3mj2dxwqqdwhca3fosrxvrsvse
+  eslint-plugin-svelte3: 4.0.0_ktwpzwc5ejqdbyb2mks6m4mhya
   obsidian: 0.16.3
   obsidian-daily-notes-interface: 0.9.4
-  svelte: 3.52.0
-  svelte-check: 2.9.2_svelte@3.52.0
-  svelte-inview: 3.0.1_svelte@3.52.0
-  svelte-preprocess: 4.10.7_rdckpvzd6e2eohsafnlvvkm5t4
+  svelte: 3.53.1
+  svelte-check: 2.9.2_svelte@3.53.1
+  svelte-inview: 3.0.1_svelte@3.53.1
+  svelte-preprocess: 4.10.7_sbp5p3xe2at3pwkscybflfv4nu
   tslib: 2.4.0
   typescript: 4.7.4
   vite: 3.2.3_@types+node@16.18.3
@@ -138,8 +136,8 @@ packages:
       fastq: 1.13.0
     dev: true
 
-  /@sveltejs/vite-plugin-svelte/1.1.0_svelte@3.52.0+vite@3.2.3:
-    resolution: {integrity: sha512-cFRfEdztubtj1c/rYh7ArK7XCfFJn6wG6+J8/e9amFsKtEJILovoBrK0/mxt1AjPQg0vaX+fHPKvhx+q8mTPaQ==}
+  /@sveltejs/vite-plugin-svelte/1.1.1_svelte@3.53.1+vite@3.2.3:
+    resolution: {integrity: sha512-NzIaGIzWh5hCSMUoxukYEGmxFCWgzaVglqHJLV5r0BA7hHZbHXu8DYR80i6QUX4xyoQ4PZ8ir7SUYsThbreMcg==}
     engines: {node: ^14.18.0 || >= 16}
     peerDependencies:
       diff-match-patch: ^1.0.5
@@ -153,8 +151,8 @@ packages:
       deepmerge: 4.2.2
       kleur: 4.1.5
       magic-string: 0.26.7
-      svelte: 3.52.0
-      svelte-hmr: 0.15.0_svelte@3.52.0
+      svelte: 3.53.1
+      svelte-hmr: 0.15.0_svelte@3.53.1
       vite: 3.2.3_@types+node@16.18.3
     transitivePeerDependencies:
       - supports-color
@@ -176,13 +174,6 @@ packages:
 
   /@types/json-schema/7.0.11:
     resolution: {integrity: sha512-wOuvG1SN4Us4rez+tylwwwCV1psiNVOkJeM3AUWUNWg/jDQY2+HE/444y5gc+jBmRqASOm2Oeh5c1axHobwRKQ==}
-    dev: true
-
-  /@types/moment/2.13.0:
-    resolution: {integrity: sha512-DyuyYGpV6r+4Z1bUznLi/Y7HpGn4iQ4IVcGn8zrr1P4KotKLdH0sbK1TFR6RGyX6B+G8u83wCzL+bpawKU/hdQ==}
-    deprecated: This is a stub types definition for Moment (https://github.com/moment/moment). Moment provides its own type definitions, so you don't need @types/moment installed!
-    dependencies:
-      moment: 2.29.4
     dev: true
 
   /@types/node/16.18.3:
@@ -726,14 +717,14 @@ packages:
     engines: {node: '>=10'}
     dev: true
 
-  /eslint-plugin-svelte3/4.0.0_3mj2dxwqqdwhca3fosrxvrsvse:
+  /eslint-plugin-svelte3/4.0.0_ktwpzwc5ejqdbyb2mks6m4mhya:
     resolution: {integrity: sha512-OIx9lgaNzD02+MDFNLw0GEUbuovNcglg+wnd/UY0fbZmlQSz7GlQiQ1f+yX0XvC07XPcDOnFcichqI3xCwp71g==}
     peerDependencies:
       eslint: '>=8.0.0'
       svelte: ^3.2.0
     dependencies:
       eslint: 8.27.0
-      svelte: 3.52.0
+      svelte: 3.53.1
     dev: true
 
   /eslint-scope/5.1.1:
@@ -1296,8 +1287,8 @@ packages:
     engines: {node: '>=8.6'}
     dev: true
 
-  /postcss/8.4.18:
-    resolution: {integrity: sha512-Wi8mWhncLJm11GATDaQKobXSNEYGUHeQLiQqDFG1qQ5UTDPTEvKw0Xt5NsTpktGTwLps3ByrWsBrG0rB8YQ9oA==}
+  /postcss/8.4.19:
+    resolution: {integrity: sha512-h+pbPsyhlYj6N2ozBmHhHrs9DzGmbaarbLvWipMRO7RLS+v4onj26MPFXA5OBYFxyqYhUJK456SwDcY9H2/zsA==}
     engines: {node: ^10 || ^12 || >=14}
     dependencies:
       nanoid: 3.3.4
@@ -1469,7 +1460,7 @@ packages:
     engines: {node: '>= 0.4'}
     dev: true
 
-  /svelte-check/2.9.2_svelte@3.52.0:
+  /svelte-check/2.9.2_svelte@3.53.1:
     resolution: {integrity: sha512-DRi8HhnCiqiGR2YF9ervPGvtoYrheE09cXieCTEqeTPOTJzfoa54Py8rovIBv4bH4n5HgZYIyTQ3DDLHQLl2uQ==}
     hasBin: true
     peerDependencies:
@@ -1481,8 +1472,8 @@ packages:
       import-fresh: 3.3.0
       picocolors: 1.0.0
       sade: 1.8.1
-      svelte: 3.52.0
-      svelte-preprocess: 4.10.7_rdckpvzd6e2eohsafnlvvkm5t4
+      svelte: 3.53.1
+      svelte-preprocess: 4.10.7_sbp5p3xe2at3pwkscybflfv4nu
       typescript: 4.7.4
     transitivePeerDependencies:
       - '@babel/core'
@@ -1497,24 +1488,24 @@ packages:
       - sugarss
     dev: true
 
-  /svelte-hmr/0.15.0_svelte@3.52.0:
+  /svelte-hmr/0.15.0_svelte@3.53.1:
     resolution: {integrity: sha512-Aw21SsyoohyVn4yiKXWPNCSW2DQNH/76kvUnE9kpt4h9hcg9tfyQc6xshx9hzgMfGF0kVx0EGD8oBMWSnATeOg==}
     engines: {node: ^12.20 || ^14.13.1 || >= 16}
     peerDependencies:
       svelte: '>=3.19.0'
     dependencies:
-      svelte: 3.52.0
+      svelte: 3.53.1
     dev: true
 
-  /svelte-inview/3.0.1_svelte@3.52.0:
+  /svelte-inview/3.0.1_svelte@3.53.1:
     resolution: {integrity: sha512-kmlD4l/z5tqMqGuWLOSz6Ys2ISJ2WXg01jFVygugma0XA45UeYNGjoRazp+gMvaWoHqCQPx6D8cH9YQBS1pZxA==}
     peerDependencies:
       svelte: ^3.0.0
     dependencies:
-      svelte: 3.52.0
+      svelte: 3.53.1
     dev: true
 
-  /svelte-preprocess/4.10.7_rdckpvzd6e2eohsafnlvvkm5t4:
+  /svelte-preprocess/4.10.7_sbp5p3xe2at3pwkscybflfv4nu:
     resolution: {integrity: sha512-sNPBnqYD6FnmdBrUmBCaqS00RyCsCpj2BG58A1JBswNF7b0OKviwxqVrOL/CKyJrLSClrSeqQv5BXNg2RUbPOw==}
     engines: {node: '>= 9.11.2'}
     requiresBuild: true
@@ -1561,12 +1552,12 @@ packages:
       magic-string: 0.25.9
       sorcery: 0.10.0
       strip-indent: 3.0.0
-      svelte: 3.52.0
+      svelte: 3.53.1
       typescript: 4.7.4
     dev: true
 
-  /svelte/3.52.0:
-    resolution: {integrity: sha512-FxcnEUOAVfr10vDU5dVgJN19IvqeHQCS1zfe8vayTfis9A2t5Fhx+JDe5uv/C3j//bB1umpLJ6quhgs9xyUbCQ==}
+  /svelte/3.53.1:
+    resolution: {integrity: sha512-Q4/hHkktZogGhN5iqxqSi9sjEVoe/NbIxX4hXEHoasTxj+TxEQVAq66LnDMdAZxjmsodkoI5F3slqsS68U7FNw==}
     engines: {node: '>= 8'}
     dev: true
 
@@ -1654,7 +1645,7 @@ packages:
     dependencies:
       '@types/node': 16.18.3
       esbuild: 0.15.13
-      postcss: 8.4.18
+      postcss: 8.4.19
       resolve: 1.22.1
       rollup: 2.79.1
     optionalDependencies:
@@ -1688,7 +1679,7 @@ packages:
     dev: true
 
   github.com/obsidianmd/obsidian-api/902badd38ba907689f0917d7b193f7e33d1284fe:
-    resolution: {commit: 902badd38ba907689f0917d7b193f7e33d1284fe, repo: git+ssh://git@github.com/obsidianmd/obsidian-api.git, type: git}
+    resolution: {tarball: https://codeload.github.com/obsidianmd/obsidian-api/tar.gz/902badd38ba907689f0917d7b193f7e33d1284fe}
     name: obsidian
     version: 0.16.3
     peerDependencies:
