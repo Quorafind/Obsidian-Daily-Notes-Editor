@@ -6,7 +6,7 @@
 
 A plugin for you to edit a bunch of daily notes in one page(inline), which works similar to Roam Research's default daily note view.
 
-![](https://raw.githubusercontent.com/Quorafind/Obsidian-Daily-Notes-View/master/image/Daily-Note-View.mp4)
+![Daily-Note-View](https://raw.githubusercontent.com/Quorafind/Obsidian-Daily-Notes-Editor/master/image/Daily-Note-View.mp4)
 
 # Features
 
