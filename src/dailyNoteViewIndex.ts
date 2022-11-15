@@ -8,7 +8,7 @@ import {
     WorkspaceContainer, WorkspaceItem,
     WorkspaceLeaf, addIcon, TAbstractFile
 } from 'obsidian';
-import DailyNoteEditorView from "./component/DailyNoteEditorView.svelte";
+import DailyNoteEditorView, { check } from "./component/DailyNoteEditorView.svelte";
 import { around } from "monkey-around";
 import { DailyNoteEditor, isDailyNoteLeaf } from "./leafView";
 import "./style/index.css";
@@ -51,6 +51,10 @@ class DailyNoteView extends ItemView {
         this.app.vault.on("create", this.onFileCreate);
         this.app.vault.on("delete", this.onFileDelete);
         this.app.workspace.onLayoutReady(this.view.tick.bind(this));
+
+        this.registerInterval(window.setInterval(async () => {
+            this.view.check();
+        }, 1000 * 60 * 60 * 24));
     }
 }
 
@@ -71,6 +75,8 @@ export default class DailyNoteViewPlugin extends Plugin {
             name: 'Open Daily Note Editor',
             callback: () => this.openDailyNoteEditor(),
         });
+
+
     }
 
     onunload() {
