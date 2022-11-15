@@ -19,7 +19,6 @@ import {
 } from "obsidian";
 import type OpenViewState from "obsidian";
 import type DailyNoteViewPlugin from "./dailyNoteViewIndex";
-import { DAILY_NOTE_VIEW_TYPE } from "./dailyNoteViewIndex";
 
 
 export interface DailyNoteEditorParent {
@@ -72,7 +71,7 @@ export class DailyNoteEditor extends nosuper(HoverPopover) {
     opening = false;
 
     rootSplit: WorkspaceSplit = new (WorkspaceSplit as ConstructableWorkspaceSplit)(window.app.workspace, "vertical");
-    isPinned: boolean = true;
+    isPinned = true;
 
     titleEl: HTMLElement;
     containerEl: HTMLElement;
@@ -196,7 +195,6 @@ export class DailyNoteEditor extends nosuper(HoverPopover) {
 
         if (leafCount === 0) {
             this.hide(); // close if we have no leaves
-        } else if (leafCount > 1) {
         }
         this.hoverEl.setAttribute("data-leaf-count", leafCount.toString());
     }
@@ -312,7 +310,7 @@ export class DailyNoteEditor extends nosuper(HoverPopover) {
 
     detect(el: HTMLElement) {
         // TODO: may not be needed? the mouseover/out handers handle most detection use cases
-        const { targetEl, hoverEl } = this;
+        const { targetEl } = this;
 
         if (targetEl) {
             this.onTarget = el === targetEl || targetEl.contains(el);

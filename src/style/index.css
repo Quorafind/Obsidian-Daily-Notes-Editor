@@ -50,3 +50,32 @@
 .daily-note-view .daily-note-container:first-child::before {
     height  : 0px;
 }
+
+.is-popout-window .dn-editor .dn-content {
+    margin: 0;
+    border-radius: var(--he-popover-border-radius);
+    overflow: hidden;
+    height: auto;
+}
+
+.is-popout-window .dn-editor .workspace-leaf,
+.is-popout-window .dn-editor .workspace-split {
+    height: auto;
+    width: 100%;
+}
+
+.is-popout-window .dn-editor .cm-scroller {
+    height: auto;
+}
+
+.is-popout-window .dn-editor .markdown-source-view.mod-cm6 {
+    height: auto;
+}
+
+.is-popout-window .dn-editor .view-content {
+    height: auto;
+}
+
+.is-popout-window .dn-editor .workspace-leaf-content {
+    height: auto;
+}
