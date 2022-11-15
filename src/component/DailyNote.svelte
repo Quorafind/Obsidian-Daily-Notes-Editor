@@ -3,7 +3,6 @@
     import { TAbstractFile, TFile, WorkspaceLeaf } from "obsidian";
     import { DailyNoteEditor, spawnLeafView } from "../leafView";
     import { inview } from "svelte-inview";
-    import { onMount } from "svelte";
 
     export let file: TAbstractFile;
     export let plugin: DailyNoteViewPlugin;

@@ -52,9 +52,10 @@ class DailyNoteView extends ItemView {
         this.app.vault.on("delete", this.onFileDelete);
         this.app.workspace.onLayoutReady(this.view.tick.bind(this));
 
+        // used for triggering when the day change
         this.registerInterval(window.setInterval(async () => {
             this.view.check();
-        }, 1000 * 60 * 60 * 24));
+        }, 1000 * 60 * 60));
     }
 }
 
