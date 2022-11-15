@@ -8,7 +8,7 @@ import {
     WorkspaceContainer, WorkspaceItem,
     WorkspaceLeaf, addIcon, TAbstractFile
 } from 'obsidian';
-import DailyNoteEditorView, { check } from "./component/DailyNoteEditorView.svelte";
+import DailyNoteEditorView from "./component/DailyNoteEditorView.svelte";
 import { around } from "monkey-around";
 import { DailyNoteEditor, isDailyNoteLeaf } from "./leafView";
 import "./style/index.css";
