@@ -1,13 +1,14 @@
 {
   "name": "daily-notes-editor",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "A plugin for you to edit a bunch of daily notes in one page(inline), which works similar to Roam Research's default daily note view.",
   "main": "main.js",
   "scripts": {
     "lint": "eslint . --ext .ts",
     "dev": "npm run lint && vite build --watch",
     "build": "npx svelte-check && vite build --mode=production",
-    "bumpversion": "node version-bump.mjs && git add manifest.json versions.json"
+    "bumpversion": "node version-bump.mjs && git add manifest.json versions.json",
+    "push": "git push -u origin HEAD"
   },
   "keywords": [],
   "author": "Quorafind",
