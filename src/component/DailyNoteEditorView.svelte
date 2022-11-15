@@ -70,6 +70,10 @@
         renderedDailyNotes = renderedDailyNotes;
     }
 
+    export function check() {
+        checkDailyNote();
+    }
+
     export function fileCreate(file: TFile) {
         if(!getDateFromFile(file, 'day')) return;
         // Check if this daily note is between the end of day in renderedDailyNotes and the start of day in renderedDailyNotes

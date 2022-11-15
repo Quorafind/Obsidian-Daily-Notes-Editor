@@ -1,12 +1,10 @@
 import {
-    App,
     ItemView,
     Plugin, OpenViewState,
-    PluginSettingTab,
-    Setting, TFile,
+    TFile,
     Workspace,
     WorkspaceContainer, WorkspaceItem,
-    WorkspaceLeaf, addIcon, TAbstractFile
+    WorkspaceLeaf, TAbstractFile
 } from 'obsidian';
 import DailyNoteEditorView from "./component/DailyNoteEditorView.svelte";
 import { around } from "monkey-around";
@@ -51,6 +49,11 @@ class DailyNoteView extends ItemView {
         this.app.vault.on("create", this.onFileCreate);
         this.app.vault.on("delete", this.onFileDelete);
         this.app.workspace.onLayoutReady(this.view.tick.bind(this));
+
+        // used for triggering when the day change
+        this.registerInterval(window.setInterval(async () => {
+            this.view.check();
+        }, 1000 * 60 * 60));
     }
 }
 
@@ -71,6 +74,8 @@ export default class DailyNoteViewPlugin extends Plugin {
             name: 'Open Daily Note Editor',
             callback: () => this.openDailyNoteEditor(),
         });
+
+
     }
 
     onunload() {
