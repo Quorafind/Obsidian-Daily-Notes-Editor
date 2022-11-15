@@ -34,12 +34,12 @@ body:
         validations:
             required: true
     -   type: checkboxes
-        id: editor
+        id: dailynote
         attributes:
-            label: Which editor are you using?
+            label: Which plugin are you using for daily notes?
             options:
-                -   label: New Editor
-                -   label: Legacy Editor
+                -   label: Default Daily Note Plugin
+                -   label: Periodic Notes Plugin
     -   type: checkboxes
         id: checklist
         attributes:
