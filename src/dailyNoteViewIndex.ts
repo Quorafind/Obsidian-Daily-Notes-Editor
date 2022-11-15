@@ -1,12 +1,10 @@
 import {
-    App,
     ItemView,
     Plugin, OpenViewState,
-    PluginSettingTab,
-    Setting, TFile,
+    TFile,
     Workspace,
     WorkspaceContainer, WorkspaceItem,
-    WorkspaceLeaf, addIcon, TAbstractFile
+    WorkspaceLeaf, TAbstractFile
 } from 'obsidian';
 import DailyNoteEditorView from "./component/DailyNoteEditorView.svelte";
 import { around } from "monkey-around";
