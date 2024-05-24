@@ -1,15 +1,21 @@
 <script lang="ts">
     import type DailyNoteViewPlugin from "../dailyNoteViewIndex";
-    import type {  WorkspaceLeaf } from "obsidian";
+    import type { WorkspaceLeaf } from "obsidian";
 
     import { TFile, moment } from "obsidian";
     import DailyNote from "./DailyNote.svelte";
     import { inview } from "svelte-inview";
-    import { getAllDailyNotes, getDailyNote, createDailyNote, getDateFromFile } from 'obsidian-daily-notes-interface';
+    import {
+        getAllDailyNotes,
+        getDailyNote,
+        createDailyNote,
+        getDateFromFile,
+        getDailyNoteSettings
+    } from 'obsidian-daily-notes-interface';
 
     export let plugin: DailyNoteViewPlugin;
     export let leaf: WorkspaceLeaf;
-    let size = 1;
+    const size = 1;
 
     let cacheDailyNotes: Record<string, any>;
     let allDailyNotes: TFile[] = [];
@@ -19,7 +25,7 @@
     let hasFetch = false;
     let hasCurrentDay: boolean = true;
 
-    $: if(hasMore && !hasFetch) {
+    $: if (hasMore && !hasFetch) {
         cacheDailyNotes = getAllDailyNotes();
         // Build notes list by date in descending order.
         for (const string of Object.keys(cacheDailyNotes).sort().reverse()) {
@@ -35,31 +41,30 @@
         const currentDailyNote = getDailyNote(currentDate, cacheDailyNotes);
 
         // console.log(currentDate, cacheDailyNotes);
-        if(!currentDailyNote) {
+        if (!currentDailyNote) {
             hasCurrentDay = false;
         }
     }
 
     async function createNewDailyNote() {
-        // @ts-ignore
+        const fileFormat = getDailyNoteSettings().format || 'YYYY-MM-DD';
         const currentDate = moment();
-        if(!hasCurrentDay) {
+        if (!hasCurrentDay) {
             const currentDailyNote = await createDailyNote(currentDate);
-            if(currentDailyNote instanceof TFile) renderedDailyNotes.push(currentDailyNote);
+            renderedDailyNotes.push(currentDailyNote!);
 
             renderedDailyNotes = renderedDailyNotes.sort((a, b) => {
-                // @ts-ignore
-                return parseInt(moment(b.basename).format('x')) - parseInt(moment(a.basename).format('x'));
+                return parseInt(moment(b.basename, fileFormat).format('x')) - parseInt(moment(a.basename, fileFormat).format('x'));
             });
             hasCurrentDay = true;
         }
     }
 
-    function infiniteHandler()  {
-        if(!hasFetch || !hasMore) return;
-        if(allDailyNotes.length === 0 && hasFetch) {
+    function infiniteHandler() {
+        if (!hasFetch || !hasMore) return;
+        if (allDailyNotes.length === 0 && hasFetch) {
             hasMore = false;
-        }else {
+        } else {
             renderedDailyNotes = [
                 ...renderedDailyNotes,
                 ...allDailyNotes.splice(0, size)
@@ -76,54 +81,44 @@
     }
 
     export function fileCreate(file: TFile) {
-        if(!getDateFromFile(file, 'day')) return;
-        // Check if this daily note is between the end of day in renderedDailyNotes and the start of day in renderedDailyNotes
-        // If it is, add it to renderedDailyNotes
-        // If it is not, add it to allDailyNotes
-        if(renderedDailyNotes.length === 0) {
-            allDailyNotes.push(file);
-            allDailyNotes = allDailyNotes.sort((a, b) => {
-                // @ts-ignore
-                return parseInt(moment(b.basename).format('x')) - parseInt(moment(a.basename).format('x'));
+        const fileDate = getDateFromFile(file, 'day');
+        const fileFormat = getDailyNoteSettings().format || 'YYYY-MM-DD';
+        if (!fileDate) return;
+
+        function sortNotes(notes: TFile[]): TFile[] {
+            return notes.sort((a, b) => {
+                return moment(b.basename, fileFormat).valueOf() - moment(a.basename, fileFormat).valueOf();
             });
+        }
+
+        if (renderedDailyNotes.length === 0) {
+            allDailyNotes.push(file);
+            allDailyNotes = sortNotes(allDailyNotes);
             return;
         }
 
         const lastRenderedDailyNote = renderedDailyNotes[renderedDailyNotes.length - 1];
         const firstRenderedDailyNote = renderedDailyNotes[0];
-        // @ts-ignore
-        const lastRenderedDailyNoteDate = moment(lastRenderedDailyNote.basename);
-        // @ts-ignore
-        const firstRenderedDailyNoteDate = moment(firstRenderedDailyNote.basename);
-        // @ts-ignore
-        const fileDate = moment(file.basename);
+        const lastRenderedDailyNoteDate = moment(lastRenderedDailyNote.basename, fileFormat);
+        const firstRenderedDailyNoteDate = moment(firstRenderedDailyNote.basename, fileFormat);
 
-        if(fileDate.isBetween(lastRenderedDailyNoteDate, firstRenderedDailyNoteDate)) {
+        if (fileDate.isBetween(lastRenderedDailyNoteDate, firstRenderedDailyNoteDate)) {
             renderedDailyNotes.push(file);
-            renderedDailyNotes = renderedDailyNotes.sort((a, b) => {
-                // @ts-ignore
-                return parseInt(moment(b.basename).format('x')) - parseInt(moment(a.basename).format('x'));
-            });
-        } else if(fileDate.isBefore(lastRenderedDailyNoteDate)) {
+            renderedDailyNotes = sortNotes(renderedDailyNotes);
+        } else if (fileDate.isBefore(lastRenderedDailyNoteDate)) {
             allDailyNotes.push(file);
-            allDailyNotes = allDailyNotes.sort((a, b) => {
-                // @ts-ignore
-                return parseInt(moment(b.basename).format('x')) - parseInt(moment(a.basename).format('x'));
-            });
-        } else if(fileDate.isAfter(firstRenderedDailyNoteDate)) {
+            allDailyNotes = sortNotes(allDailyNotes);
+        } else if (fileDate.isAfter(firstRenderedDailyNoteDate)) {
             renderedDailyNotes.push(file);
-            renderedDailyNotes = renderedDailyNotes.sort((a, b) => {
-                // @ts-ignore
-                return parseInt(moment(b.basename).format('x')) - parseInt(moment(a.basename).format('x'));
-            });
+            renderedDailyNotes = sortNotes(renderedDailyNotes);
         }
 
-        // @ts-ignore
-        if(fileDate.isSame(moment(), 'day')) hasCurrentDay = true;
+        if (fileDate.isSame(moment(), 'day')) hasCurrentDay = true;
     }
 
+
     export function fileDelete(file: TFile) {
-        if(!getDateFromFile(file, 'day')) return;
+        if (!getDateFromFile(file, 'day')) return;
         renderedDailyNotes = renderedDailyNotes.filter((dailyNote) => {
             return dailyNote.basename !== file.basename;
         });
@@ -148,7 +143,7 @@
     {#each renderedDailyNotes as file (file)}
         <DailyNote file={file} plugin={plugin} leaf={leaf}/>
     {/each}
-    <div use:inview={{}} on:init={infiniteHandler} on:change={infiniteHandler} />
+    <div use:inview={{}} on:init={infiniteHandler} on:change={infiniteHandler}/>
     {#if !hasMore}
         <div class="no-more-text">—— No more of results ——</div>
     {/if}
@@ -170,7 +165,7 @@
         display: flex;
         margin-left: auto;
         margin-right: auto;
-        max-width: var(--file-line-width) ;
+        max-width: var(--file-line-width);
         color: var(--color-base-40);
         padding-top: 20px;
         padding-bottom: 20px;
@@ -180,9 +175,7 @@
     .dn-blank-day:hover {
         padding-top: 40px;
         padding-bottom: 40px;
-        background-color: var(--color-base-20);
-        transition: all 300ms;
-        color: var(--color-base-80);
+        transition: padding 300ms;
     }
 
     .dn-blank-day-text {

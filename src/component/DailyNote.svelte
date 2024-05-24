@@ -17,7 +17,7 @@
     let createdLeaf: WorkspaceLeaf;
     let dnEditor: DailyNoteEditor;
 
-    $: if(editorEl) {
+    $: if (editorEl) {
         showEditor();
         id = genId(8);
     }
@@ -29,8 +29,8 @@
     }
 
     function showEditor() {
-        if(!(file instanceof TFile)) return;
-        if(rendered) return;
+        if (!(file instanceof TFile)) return;
+        if (rendered) return;
 
         title = file.basename;
 
@@ -42,23 +42,23 @@
     }
 
     function handleClick() {
-        if(!(file instanceof TFile)) return;
-        if(leaf) {
+        if (!(file instanceof TFile)) return;
+        if (leaf) {
             leaf.openFile(file);
         } else app.workspace.getLeaf(false).openFile(file);
     }
 
     function hideHandler(event: any) {
-        const { scrollDirection } = event.detail;
-        if(scrollDirection.vertical === "up") {
+        const {scrollDirection} = event.detail;
+        if (scrollDirection.vertical === "up") {
             rendered = false;
             dnEditor.hide();
         }
     }
 
     function showHandler(event: any) {
-        const { scrollDirection } = event.detail;
-        if(scrollDirection.vertical === "down") {
+        const {scrollDirection} = event.detail;
+        if (scrollDirection.vertical === "down") {
             showEditor();
         }
     }
@@ -80,32 +80,20 @@
 <!--</div>-->
 
 <style>
-    /*.dn-card {*/
-    /*    background-color: white;*/
-    /*    border-radius: 10px;*/
-    /*    filter: drop-shadow(0 20px 13px rgb(0 0 0 / 0.03)) drop-shadow(0 8px 5px rgb(0 0 0 / 0.08));*/
-    /*    height: 400px;*/
-    /*    overflow-y: auto;*/
-    /*    margin: 9px;*/
-    /*}*/
-
-    .daily-note{
-        margin-bottom: 20px;
-        padding-bottom: 20px;
+    .daily-note {
+        margin-bottom: var(--size-4-5);
+        padding-bottom: var(--size-4-5);
     }
 
-    .daily-note-title{
-        max-width: var(--file-line-width) ;
-        margin-left: auto;
-        margin-right: auto;
-        margin-bottom: 20px;
-        padding-right: 30px;
-        font-size: 42px;
-        font-weight: bolder;
-        color: var(--color-orange);
+    .daily-note-title {
+        font-size: var(--h1-size);
+        font-weight: var(--font-bold);
+        color: var(--background-modifier);
+
+        margin-bottom: var(--size-4-4);
     }
 
-    .daily-note-title:hover{
-        background-color: azure;
+    .daily-note-title:hover {
+        background-color: var(--background-modifier-hover);
     }
 </style>
