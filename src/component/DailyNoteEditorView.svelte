@@ -50,8 +50,8 @@
         const fileFormat = getDailyNoteSettings().format || 'YYYY-MM-DD';
         const currentDate = moment();
         if (!hasCurrentDay) {
-            const currentDailyNote = await createDailyNote(currentDate);
-            renderedDailyNotes.push(currentDailyNote!);
+            const currentDailyNote: any = await createDailyNote(currentDate);
+            renderedDailyNotes.push(currentDailyNote);
 
             renderedDailyNotes = renderedDailyNotes.sort((a, b) => {
                 return parseInt(moment(b.basename, fileFormat).format('x')) - parseInt(moment(a.basename, fileFormat).format('x'));
@@ -81,7 +81,7 @@
     }
 
     export function fileCreate(file: TFile) {
-        const fileDate = getDateFromFile(file, 'day');
+        const fileDate = getDateFromFile(file as TFile, 'day');
         const fileFormat = getDailyNoteSettings().format || 'YYYY-MM-DD';
         if (!fileDate) return;
 
@@ -118,7 +118,7 @@
 
 
     export function fileDelete(file: TFile) {
-        if (!getDateFromFile(file, 'day')) return;
+        if (!getDateFromFile(file as TFile, 'day')) return;
         renderedDailyNotes = renderedDailyNotes.filter((dailyNote) => {
             return dailyNote.basename !== file.basename;
         });
@@ -143,7 +143,7 @@
     {#each renderedDailyNotes as file (file)}
         <DailyNote file={file} plugin={plugin} leaf={leaf}/>
     {/each}
-    <div use:inview={{}} on:init={infiniteHandler} on:change={infiniteHandler}/>
+    <div use:inview={{}} on:inview_init={infiniteHandler} on:inview_change={infiniteHandler}/>
     {#if !hasMore}
         <div class="no-more-text">—— No more of results ——</div>
     {/if}

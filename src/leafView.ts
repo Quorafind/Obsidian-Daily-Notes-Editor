@@ -4,8 +4,10 @@
 // And also monkey around the Obsidian original method.
 import {
     Component,
+    EphemeralState,
     HoverPopover,
     MarkdownEditView,
+    OpenViewState,
     parseLinktext,
     PopoverState,
     requireApiVersion,
@@ -17,8 +19,9 @@ import {
     WorkspaceSplit,
     WorkspaceTabs,
 } from "obsidian";
-import type OpenViewState from "obsidian";
+
 import type DailyNoteViewPlugin from "./dailyNoteViewIndex";
+import { genId } from "./utils/utils";
 
 
 export interface DailyNoteEditorParent {
@@ -27,18 +30,13 @@ export interface DailyNoteEditorParent {
     view?: View;
     dom?: HTMLElement;
 }
+
 const popovers = new WeakMap<Element, DailyNoteEditor>();
-type ConstructableWorkspaceSplit = new (ws: Workspace, dir: "horizontal"|"vertical") => WorkspaceSplit;
+type ConstructableWorkspaceSplit = new (ws: Workspace, dir: "horizontal" | "vertical") => WorkspaceSplit;
 
 export function isDailyNoteLeaf(leaf: WorkspaceLeaf) {
     // Work around missing enhance.js API by checking match condition instead of looking up parent
     return leaf.containerEl.matches(".dn-editor.dn-leaf-view .workspace-leaf");
-}
-
-function genId(size: number): string {
-    const chars = [];
-    for (let n = 0; n < size; n++) chars.push(((16 * Math.random()) | 0).toString(16));
-    return chars.join("");
 }
 
 function nosuper<T>(base: new (...args: unknown[]) => T): new () => T {
@@ -51,7 +49,7 @@ function nosuper<T>(base: new (...args: unknown[]) => T): new () => T {
 
 export const spawnLeafView = (plugin: DailyNoteViewPlugin, initiatingEl?: HTMLElement, leaf?: WorkspaceLeaf, onShowCallback?: () => unknown): [WorkspaceLeaf, DailyNoteEditor] => {
     // When Obsidian doesn't set any leaf active, use leaf instead.
-    let parent = app.workspace.activeLeaf as unknown as DailyNoteEditorParent;
+    let parent = plugin.app.workspace.activeLeaf as unknown as DailyNoteEditorParent;
     if (!parent) parent = leaf as unknown as DailyNoteEditorParent;
 
     if (!initiatingEl) initiatingEl = parent?.containerEl;
@@ -59,7 +57,7 @@ export const spawnLeafView = (plugin: DailyNoteViewPlugin, initiatingEl?: HTMLEl
     const hoverPopover = new DailyNoteEditor(parent, initiatingEl!, plugin, undefined, onShowCallback);
     return [hoverPopover.attachLeaf(), hoverPopover];
 
-}
+};
 
 export class DailyNoteEditor extends nosuper(HoverPopover) {
     onTarget: boolean;
@@ -80,7 +78,7 @@ export class DailyNoteEditor extends nosuper(HoverPopover) {
     // leafInHoverEl: WorkspaceLeaf;
 
     oldPopover = this.parent?.DailyNoteEditor;
-    document: Document = this.targetEl?.ownerDocument ?? window.activeDocument ?? window.document;
+    document: Document;
 
     id = genId(8);
     bounce?: NodeJS.Timeout;
@@ -92,7 +90,7 @@ export class DailyNoteEditor extends nosuper(HoverPopover) {
 
     static activeWindows() {
         const windows: Window[] = [window];
-        const { floatingSplit } = app.workspace;
+        const {floatingSplit} = app.workspace;
         if (floatingSplit) {
             for (const split of floatingSplit.children) {
                 if (split.win) windows.push(split.win);
@@ -101,12 +99,12 @@ export class DailyNoteEditor extends nosuper(HoverPopover) {
         return windows;
     }
 
-    static containerForDocument(doc: Document) {
-        if (doc !== document && app.workspace.floatingSplit)
-            for (const container of app.workspace.floatingSplit.children) {
+    static containerForDocument(plugin: DailyNoteViewPlugin, doc: Document) {
+        if (doc !== document && plugin.app.workspace.floatingSplit)
+            for (const container of plugin.app.workspace.floatingSplit.children) {
                 if (container.doc === doc) return container;
             }
-        return app.workspace.rootSplit;
+        return plugin.app.workspace.rootSplit;
     }
 
     static activePopovers() {
@@ -132,10 +130,7 @@ export class DailyNoteEditor extends nosuper(HoverPopover) {
         return false;
     }
 
-    hoverEl: HTMLElement = this.document.defaultView!.createDiv({
-        cls: "dn-editor dn-leaf-view",
-        attr: { id: "dn-" + this.id },
-    });
+    hoverEl: HTMLElement;
 
     constructor(
         parent: DailyNoteEditorParent,
@@ -155,7 +150,13 @@ export class DailyNoteEditor extends nosuper(HoverPopover) {
         this.parent = parent;
         this.waitTime = waitTime;
         this.state = PopoverState.Showing;
-        const { hoverEl } = this;
+
+        this.document = this.targetEl?.ownerDocument ?? window.activeDocument ?? window.document;
+        this.hoverEl = this.document.defaultView!.createDiv({
+            cls: "dn-editor dn-leaf-view",
+            attr: {id: "dn-" + this.id},
+        });
+        const {hoverEl} = this;
 
         this.abortController!.load();
         this.timer = window.setTimeout(this.show.bind(this), waitTime);
@@ -175,7 +176,7 @@ export class DailyNoteEditor extends nosuper(HoverPopover) {
     _setActive(evt: MouseEvent) {
         evt.preventDefault();
         evt.stopPropagation();
-        this.plugin.app.workspace.setActiveLeaf(this.leaves()[0], {focus: true})
+        this.plugin.app.workspace.setActiveLeaf(this.leaves()[0], {focus: true});
     }
 
     getDefaultMode() {
@@ -248,7 +249,7 @@ export class DailyNoteEditor extends nosuper(HoverPopover) {
 
     attachLeaf(): WorkspaceLeaf {
         this.rootSplit.getRoot = () => this.plugin.app.workspace[this.document === document ? "rootSplit" : "floatingSplit"]!;
-        this.rootSplit.getContainer = () => DailyNoteEditor.containerForDocument(this.document);
+        this.rootSplit.getContainer = () => DailyNoteEditor.containerForDocument(this.plugin, this.document);
 
         this.titleEl.insertAdjacentElement("afterend", this.rootSplit.containerEl);
         const leaf = this.plugin.app.workspace.createLeafInParent(this.rootSplit, 0);
@@ -265,9 +266,9 @@ export class DailyNoteEditor extends nosuper(HoverPopover) {
             // @ts-ignore
             this.rootSplit.children.forEach((item: any, index: any) => {
                 if (item instanceof WorkspaceTabs) {
-                    this.rootSplit.replaceChild(index, item.children[0]);
+                    this.rootSplit.replaceChild(index, (item as any).children[0]);
                 }
-            })
+            });
         }));
     }
 
@@ -286,7 +287,7 @@ export class DailyNoteEditor extends nosuper(HoverPopover) {
             () => {
                 this.hoverEl.toggleClass("is-new", false);
             },
-            { once: true, capture: true },
+            {once: true, capture: true},
         );
 
         if (this.parent) {
@@ -298,11 +299,11 @@ export class DailyNoteEditor extends nosuper(HoverPopover) {
         viewHeaderEl?.remove();
 
         const sizer = this.hoverEl.querySelector(".workspace-leaf");
-        if(sizer) this.hoverEl.appendChild(sizer);
+        if (sizer) this.hoverEl.appendChild(sizer);
 
         // Remove original inline tilte;
         const inlineTitle = this.hoverEl.querySelector(".inline-title");
-        if(inlineTitle) inlineTitle.remove();
+        if (inlineTitle) inlineTitle.remove();
 
         this.onShowCallback?.();
         this.onShowCallback = undefined; // only call it once
@@ -310,7 +311,7 @@ export class DailyNoteEditor extends nosuper(HoverPopover) {
 
     detect(el: HTMLElement) {
         // TODO: may not be needed? the mouseover/out handers handle most detection use cases
-        const { targetEl } = this;
+        const {targetEl} = this;
 
         if (targetEl) {
             this.onTarget = el === targetEl || targetEl.contains(el);
@@ -420,7 +421,7 @@ export class DailyNoteEditor extends nosuper(HoverPopover) {
     }
 
     nativeHide() {
-        const { hoverEl, targetEl } = this;
+        const {hoverEl, targetEl} = this;
         this.state = PopoverState.Hidden;
         hoverEl.detach();
 
@@ -451,7 +452,7 @@ export class DailyNoteEditor extends nosuper(HoverPopover) {
             // this.displayCreateFileAction(linkText, sourcePath, eState);
             return;
         }
-        const { viewRegistry } = this.plugin.app;
+        const {viewRegistry} = this.plugin.app;
         const viewType = viewRegistry.typeByExtension[file.extension];
         if (!viewType || !viewRegistry.viewByType[viewType]) {
             // this.displayOpenFileAction(file);
@@ -483,7 +484,7 @@ export class DailyNoteEditor extends nosuper(HoverPopover) {
         if (state.state?.mode === "source") {
             this.whenShown(() => {
                 // Not sure why this is needed, but without it we get issue #186
-                if (requireApiVersion("1.0"))(leaf?.view as any)?.editMode?.reinit?.();
+                if (requireApiVersion("1.0")) (leaf?.view as any)?.editMode?.reinit?.();
                 leaf?.view?.setEphemeralState(state.eState);
             });
         }
@@ -525,7 +526,7 @@ export class DailyNoteEditor extends nosuper(HoverPopover) {
     buildState(parentMode: string, eState?: EphemeralState) {
         return {
             active: false, // Don't let Obsidian force focus if we have autofocus off
-            state: { mode: "source" }, // Don't set any state for the view, because this leaf is stayed on another view.
+            state: {mode: "source"}, // Don't set any state for the view, because this leaf is stayed on another view.
             eState: eState,
         };
     }
@@ -539,7 +540,7 @@ export class DailyNoteEditor extends nosuper(HoverPopover) {
     ) {
         const cache = this.plugin.app.metadataCache.getFileCache(file);
         const subpath = cache ? resolveSubpath(cache, link?.subpath || "") : undefined;
-        const eState: EphemeralState = { subpath: link?.subpath };
+        const eState: EphemeralState = {subpath: link?.subpath};
         if (subpath) {
             eState.line = subpath.start.line;
             eState.startLoc = subpath.start;

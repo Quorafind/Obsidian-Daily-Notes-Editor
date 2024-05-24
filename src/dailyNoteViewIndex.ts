@@ -4,23 +4,32 @@ import {
     TFile,
     Workspace,
     WorkspaceContainer, WorkspaceItem,
-    WorkspaceLeaf, TAbstractFile
+    WorkspaceLeaf, TAbstractFile, Scope, Notice, View, Constructor
 } from 'obsidian';
 import DailyNoteEditorView from "./component/DailyNoteEditorView.svelte";
 import { around } from "monkey-around";
 import { DailyNoteEditor, isDailyNoteLeaf } from "./leafView";
 import "./style/index.css";
 import { addIconList } from "./utils/icon";
+import { DailyNoteSettings, DailyNoteSettingTab, DEFAULT_SETTINGS } from "./dailyNoteSettings";
 
 export const DAILY_NOTE_VIEW_TYPE = "daily-note-editor-view";
+
+export function isEmebeddedLeaf(leaf: WorkspaceLeaf) {
+    // Work around missing enhance.js API by checking match condition instead of looking up parent
+    return (leaf as any).containerEl.matches('.dn-leaf-view');
+}
 
 class DailyNoteView extends ItemView {
     view: DailyNoteEditorView;
     plugin: DailyNoteViewPlugin;
+    scope: Scope;
 
     constructor(leaf: WorkspaceLeaf, plugin: DailyNoteViewPlugin) {
         super(leaf);
         this.plugin = plugin;
+
+        this.scope = new Scope(plugin.app.scope);
     }
 
     getViewType(): string {
@@ -35,17 +44,20 @@ class DailyNoteView extends ItemView {
         return "daily-note";
     }
 
-    onFileCreate = (file: TAbstractFile)=> {
-        if(file instanceof TFile) this.view.fileCreate(file);
-    }
+    onFileCreate = (file: TAbstractFile) => {
+        if (file instanceof TFile) this.view.fileCreate(file);
+    };
 
-    onFileDelete = (file: TAbstractFile)=> {
-        if(file instanceof TFile) this.view.fileDelete(file);
+    onFileDelete = (file: TAbstractFile) => {
+        if (file instanceof TFile) this.view.fileDelete(file);
     };
 
     async onOpen(): Promise<void> {
 
-        this.view = new DailyNoteEditorView({ target: this.contentEl, props: { plugin: this.plugin , leaf: this.leaf} });
+        this.scope.register(['Mod'], 'f', (e) => {
+            // do-nothing
+        });
+        this.view = new DailyNoteEditorView({target: this.contentEl, props: {plugin: this.plugin, leaf: this.leaf}});
         this.app.vault.on("create", this.onFileCreate);
         this.app.vault.on("delete", this.onFileDelete);
         this.app.workspace.onLayoutReady(this.view.tick.bind(this));
@@ -61,7 +73,11 @@ export default class DailyNoteViewPlugin extends Plugin {
     private view: DailyNoteView;
     lastActiveFile: TFile;
 
+    settings: DailyNoteSettings;
+
     async onload() {
+        this.addSettingTab(new DailyNoteSettingTab(this.app, this));
+        await this.loadSettings();
         this.patchWorkspace();
         this.patchWorkspaceLeaf();
         addIconList();
@@ -75,19 +91,28 @@ export default class DailyNoteViewPlugin extends Plugin {
             callback: () => this.openDailyNoteEditor(),
         });
 
+        this.initCssRules();
+
 
     }
 
     onunload() {
         this.app.workspace.detachLeavesOfType(DAILY_NOTE_VIEW_TYPE);
+        document.body.toggleClass('daily-notes-hide-frontmatter', false);
+        document.body.toggleClass('daily-notes-hide-backlinks', false);
     }
 
     async openDailyNoteEditor() {
         const workspace = this.app.workspace;
         workspace.detachLeavesOfType(DAILY_NOTE_VIEW_TYPE);
         const leaf = workspace.getLeaf(true);
-        await leaf.setViewState({ type: DAILY_NOTE_VIEW_TYPE });
+        await leaf.setViewState({type: DAILY_NOTE_VIEW_TYPE});
         workspace.revealLeaf(leaf);
+    }
+
+    initCssRules() {
+        document.body.toggleClass('daily-notes-hide-frontmatter', this.settings.hideFrontmatter);
+        document.body.toggleClass('daily-notes-hide-backlinks', this.settings.hideBacklinks);
     }
 
     patchWorkspace() {
@@ -111,7 +136,7 @@ export default class DailyNoteViewPlugin extends Plugin {
                     if (old.call(this, arg1, arg2)) return true;
 
                     // Handle old/new API parameter swap
-                    const cb:     leafIterator  = (typeof arg1 === "function" ? arg1 : arg2) as leafIterator;
+                    const cb: leafIterator = (typeof arg1 === "function" ? arg1 : arg2) as leafIterator;
                     const parent: WorkspaceItem = (typeof arg1 === "function" ? arg2 : arg1) as WorkspaceItem;
 
                     if (!parent) return false;  // <- during app startup, rootSplit can be null
@@ -119,7 +144,7 @@ export default class DailyNoteViewPlugin extends Plugin {
 
                     // 0.14.x doesn't have WorkspaceContainer; this can just be an instanceof check once 15.x is mandatory:
                     if (parent === app.workspace.rootSplit || (WorkspaceContainer && parent instanceof WorkspaceContainer)) {
-                        for(const popover of DailyNoteEditor.popoversForWindow((parent as WorkspaceContainer).win)) {
+                        for (const popover of DailyNoteEditor.popoversForWindow((parent as WorkspaceContainer).win)) {
                             // Use old API here for compat w/0.14.x
                             if (old.call(this, cb, popover.rootSplit)) return true;
                         }
@@ -127,6 +152,14 @@ export default class DailyNoteViewPlugin extends Plugin {
                     return false;
                 };
             },
+            setActiveLeaf: (next: any) =>
+                function (e: WorkspaceLeaf, t?: any) {
+                    if ((e as any).parentLeaf) {
+                        (e as any).parentLeaf.activeTime = 1700000000000;
+                        return next.call(this, (e as any).parentLeaf, t);
+                    }
+                    next.call(this, e, t);
+                },
             onDragLeaf(old) {
                 return function (event: MouseEvent, leaf: WorkspaceLeaf) {
                     // const hoverPopover = DailyNoteEditor.forLeaf(leaf);
@@ -150,8 +183,8 @@ export default class DailyNoteViewPlugin extends Plugin {
                 setPinned(old) {
                     return function (pinned: boolean) {
                         old.call(this, pinned);
-                        if(isDailyNoteLeaf(this) && !pinned) this.setPinned(true);
-                    }
+                        if (isDailyNoteLeaf(this) && !pinned) this.setPinned(true);
+                    };
                 },
                 openFile(old) {
                     return function (file: TFile, openState?: OpenViewState) {
@@ -184,9 +217,18 @@ export default class DailyNoteViewPlugin extends Plugin {
                                 );
                         }
                         return old.call(this, file, openState);
-                    }
+                    };
                 }
             }),
         );
+    }
+
+    public async loadSettings() {
+        this.settings = Object.assign({}, DEFAULT_SETTINGS, await this.loadData());
+
+    }
+
+    async saveSettings() {
+        await this.saveData(this.settings);
     }
 }

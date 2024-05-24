@@ -12,10 +12,11 @@
 }
 
 .dn-editor .dn-content {
-    margin: 0;
-    border-radius: var(--he-popover-border-radius);
-    overflow: hidden;
-    height: 100%;
+    display: none;
+    /*margin: 0;*/
+    /*border-radius: var(--he-popover-border-radius);*/
+    /*overflow: hidden;*/
+    /*height: 100%;*/
 }
 
 .dn-editor .workspace-leaf,
@@ -87,11 +88,19 @@
 }
 
 .daily-note-view .embedded-backlinks {
-    min-height: 0 !important;
+    min-height: unset !important;
 }
 
 .daily-note-view {
     display: flex;
     flex-direction: column;
     gap: var(--size-4-4);
+}
+
+body.daily-notes-hide-frontmatter .daily-note-view .markdown-source-view.is-live-preview.show-properties .metadata-container {
+    display: none;
+}
+
+body.daily-notes-hide-backlinks .daily-note-view .embedded-backlinks {
+    display: none;
 }

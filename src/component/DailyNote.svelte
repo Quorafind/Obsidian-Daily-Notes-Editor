@@ -3,6 +3,7 @@
     import { TAbstractFile, TFile, WorkspaceLeaf } from "obsidian";
     import { DailyNoteEditor, spawnLeafView } from "../leafView";
     import { inview } from "svelte-inview";
+    import { genId } from "../utils/utils";
 
     export let file: TAbstractFile;
     export let plugin: DailyNoteViewPlugin;
@@ -22,11 +23,6 @@
         id = genId(8);
     }
 
-    function genId(size: number): string {
-        const chars = [];
-        for (let n = 0; n < size; n++) chars.push(((16 * Math.random()) | 0).toString(16));
-        return chars.join("");
-    }
 
     function showEditor() {
         if (!(file instanceof TFile)) return;
@@ -37,7 +33,11 @@
         [createdLeaf, dnEditor] = spawnLeafView(plugin, editorEl, leaf);
         createdLeaf.setPinned(true);
 
-        createdLeaf.openFile(file, {active: false, state: {mode: "source"}});
+        createdLeaf.openFile(file, {
+            active: false,
+            state: {mode: "source", backlinks: !plugin.settings.hideBacklinks,}
+        });
+        createdLeaf.parentLeaf = leaf;
         rendered = true;
     }
 
@@ -45,10 +45,11 @@
         if (!(file instanceof TFile)) return;
         if (leaf) {
             leaf.openFile(file);
-        } else app.workspace.getLeaf(false).openFile(file);
+        } else plugin.app.workspace.getLeaf(false).openFile(file);
     }
 
     function hideHandler(event: any) {
+        console.log(event);
         const {scrollDirection} = event.detail;
         if (scrollDirection.vertical === "up") {
             rendered = false;
@@ -67,13 +68,22 @@
 <div class="daily-note-container" aria-label='dn-editor-{id}'>
     <div class="daily-note">
         {#if title}
-            <div class="daily-note-title" on:click={handleClick} aria-hidden="true">
+            <div class="daily-note-title inline-title">
                 {title}
+                <div class="daily-node-icon clickable-icon" on:click={handleClick} aria-hidden="true">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
+                         stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                         class="lucide lucide-file-symlink">
+                        <path d="m10 18 3-3-3-3"/>
+                        <path d="M14 2v4a2 2 0 0 0 2 2h4"/>
+                        <path d="M4 11V4a2 2 0 0 1 2-2h9l5 5v13a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h7"/>
+                    </svg>
+                </div>
             </div>
         {/if}
         <div class="daily-note-editor" bind:this={editorEl} aria-label={title}></div>
     </div>
-    <div use:inview={{rootMargin: "20%"}} on:leave={hideHandler} on:enter={showHandler}/>
+    <div use:inview={{rootMargin: "20%"}} on:inview_enter={showHandler}/>
 </div>
 <!--<div class="dn-card">-->
 <!--    -->
@@ -85,15 +95,25 @@
         padding-bottom: var(--size-4-5);
     }
 
-    .daily-note-title {
-        font-size: var(--h1-size);
-        font-weight: var(--font-bold);
-        color: var(--background-modifier);
-
-        margin-bottom: var(--size-4-4);
+    .daily-note:has(.is-readable-line-width) .daily-note-title {
+        max-width: var(--file-line-width);
+        margin-left: auto;
+        margin-right: auto;
     }
 
-    .daily-note-title:hover {
+    .daily-note-title {
+        display: flex;
+        justify-content: space-between;
+        margin-top: var(--size-4-12);
+    }
+
+    .daily-node-icon {
+        width: var(--size-4-8);
+        height: var(--size-4-8);
+        cursor: pointer;
+    }
+
+    .daily-node-icon:hover {
         background-color: var(--background-modifier-hover);
     }
 </style>
