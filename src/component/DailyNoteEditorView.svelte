@@ -21,7 +21,8 @@
 
     $: if(hasMore && !hasFetch) {
         cacheDailyNotes = getAllDailyNotes();
-        for (const string in cacheDailyNotes) {
+        // Build notes list by date in descending order.
+        for (const string of Object.keys(cacheDailyNotes).sort().reverse()) {
             allDailyNotes.push(<TFile>cacheDailyNotes[string]);
         }
         hasFetch = true;
