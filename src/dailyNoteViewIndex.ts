@@ -159,7 +159,7 @@ export default class DailyNoteViewPlugin extends Plugin {
 
 
                         next.call(this, (e as any).parentLeaf, t);
-                        if (e.view.editMode) {
+                        if ((e.view as any).editMode) {
                             this.activeEditor = e.view;
                         }
                         return;
