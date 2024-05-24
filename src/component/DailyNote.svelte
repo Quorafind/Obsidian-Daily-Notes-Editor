@@ -1,7 +1,7 @@
 <script lang="ts">
     import type DailyNoteViewPlugin from "../dailyNoteViewIndex";
     import { TAbstractFile, TFile, WorkspaceLeaf } from "obsidian";
-    import { DailyNoteEditor, spawnLeafView } from "../leafView";
+    import { spawnLeafView } from "../leafView";
     import { inview } from "svelte-inview";
     import { genId } from "../utils/utils";
 
@@ -16,7 +16,7 @@
     let id: string;
 
     let createdLeaf: WorkspaceLeaf;
-    let dnEditor: DailyNoteEditor;
+    // let dnEditor: DailyNoteEditor;
 
     $: if (editorEl) {
         showEditor();
@@ -30,7 +30,7 @@
 
         title = file.basename;
 
-        [createdLeaf, dnEditor] = spawnLeafView(plugin, editorEl, leaf);
+        [createdLeaf] = spawnLeafView(plugin, editorEl, leaf);
         createdLeaf.setPinned(true);
 
         createdLeaf.openFile(file, {
@@ -48,14 +48,14 @@
         } else plugin.app.workspace.getLeaf(false).openFile(file);
     }
 
-    function hideHandler(event: any) {
-        console.log(event);
-        const {scrollDirection} = event.detail;
-        if (scrollDirection.vertical === "up") {
-            rendered = false;
-            dnEditor.hide();
-        }
-    }
+    // function hideHandler(event: any) {
+    //     console.log(event);
+    //     const {scrollDirection} = event.detail;
+    //     if (scrollDirection.vertical === "up") {
+    //         rendered = false;
+    //         dnEditor.hide();
+    //     }
+    // }
 
     function showHandler(event: any) {
         const {scrollDirection} = event.detail;

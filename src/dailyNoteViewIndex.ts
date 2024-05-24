@@ -4,7 +4,7 @@ import {
     TFile,
     Workspace,
     WorkspaceContainer, WorkspaceItem,
-    WorkspaceLeaf, TAbstractFile, Scope, Notice, View, Constructor
+    WorkspaceLeaf, TAbstractFile, Scope, Notice
 } from 'obsidian';
 import DailyNoteEditorView from "./component/DailyNoteEditorView.svelte";
 import { around } from "monkey-around";
@@ -156,7 +156,13 @@ export default class DailyNoteViewPlugin extends Plugin {
                 function (e: WorkspaceLeaf, t?: any) {
                     if ((e as any).parentLeaf) {
                         (e as any).parentLeaf.activeTime = 1700000000000;
-                        return next.call(this, (e as any).parentLeaf, t);
+
+
+                        next.call(this, (e as any).parentLeaf, t);
+                        if (e.view.editMode) {
+                            this.activeEditor = e.view;
+                        }
+                        return;
                     }
                     next.call(this, e, t);
                 },
