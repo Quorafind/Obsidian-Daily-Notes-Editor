@@ -10,12 +10,14 @@
         getDailyNote,
         createDailyNote,
         getDateFromFile,
-        getDailyNoteSettings
+        getDailyNoteSettings,
+        DEFAULT_DAILY_NOTE_FORMAT
     } from 'obsidian-daily-notes-interface';
 
     export let plugin: DailyNoteViewPlugin;
     export let leaf: WorkspaceLeaf;
     const size = 1;
+    let intervalId;
 
     let cacheDailyNotes: Record<string, any>;
     let allDailyNotes: TFile[] = [];
@@ -47,7 +49,7 @@
     }
 
     async function createNewDailyNote() {
-        const fileFormat = getDailyNoteSettings().format || 'YYYY-MM-DD';
+        const fileFormat = getDailyNoteSettings().format || DEFAULT_DAILY_NOTE_FORMAT;
         const currentDate = moment();
         if (!hasCurrentDay) {
             const currentDailyNote: any = await createDailyNote(currentDate);
@@ -58,6 +60,17 @@
             });
             hasCurrentDay = true;
         }
+    }
+
+    function startFillViewport() {
+        if (!intervalId) {
+            intervalId = setInterval(infiniteHandler, 100); 
+        }
+    }
+
+    function stopFillViewport() {
+        clearInterval(intervalId);
+        intervalId = null;
     }
 
     function infiniteHandler() {
@@ -82,7 +95,7 @@
 
     export function fileCreate(file: TFile) {
         const fileDate = getDateFromFile(file as TFile, 'day');
-        const fileFormat = getDailyNoteSettings().format || 'YYYY-MM-DD';
+        const fileFormat = getDailyNoteSettings().format || DEFAULT_DAILY_NOTE_FORMAT;
         if (!fileDate) return;
 
         function sortNotes(notes: TFile[]): TFile[] {
@@ -143,7 +156,7 @@
     {#each renderedDailyNotes as file (file)}
         <DailyNote file={file} plugin={plugin} leaf={leaf}/>
     {/each}
-    <div use:inview={{}} on:inview_init={infiniteHandler} on:inview_change={infiniteHandler}/>
+    <div use:inview={{}} on:inview_init={startFillViewport} on:inview_change={infiniteHandler} on:inview_leave={stopFillViewport} />
     {#if !hasMore}
         <div class="no-more-text">—— No more of results ——</div>
     {/if}
