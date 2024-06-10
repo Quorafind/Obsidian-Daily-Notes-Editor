@@ -49,15 +49,12 @@
     }
 
     async function createNewDailyNote() {
-        const fileFormat = getDailyNoteSettings().format || DEFAULT_DAILY_NOTE_FORMAT;
         const currentDate = moment();
         if (!hasCurrentDay) {
             const currentDailyNote: any = await createDailyNote(currentDate);
             renderedDailyNotes.push(currentDailyNote);
 
-            renderedDailyNotes = renderedDailyNotes.sort((a, b) => {
-                return parseInt(moment(b.basename, fileFormat).format('x')) - parseInt(moment(a.basename, fileFormat).format('x'));
-            });
+            renderedDailyNotes = sortDailyNotes(renderedDailyNotes);
             hasCurrentDay = true;
         }
     }
@@ -93,20 +90,22 @@
         checkDailyNote();
     }
 
+    function sortDailyNotes(notes: TFile[]): TFile[] {
+        const fileFormat = getDailyNoteSettings().format || DEFAULT_DAILY_NOTE_FORMAT;
+    
+        return notes.sort((a, b) => {
+            return moment(b.basename, fileFormat).valueOf() - moment(a.basename, fileFormat).valueOf();
+        });
+    }
+
     export function fileCreate(file: TFile) {
         const fileDate = getDateFromFile(file as TFile, 'day');
         const fileFormat = getDailyNoteSettings().format || DEFAULT_DAILY_NOTE_FORMAT;
         if (!fileDate) return;
 
-        function sortNotes(notes: TFile[]): TFile[] {
-            return notes.sort((a, b) => {
-                return moment(b.basename, fileFormat).valueOf() - moment(a.basename, fileFormat).valueOf();
-            });
-        }
-
         if (renderedDailyNotes.length === 0) {
             allDailyNotes.push(file);
-            allDailyNotes = sortNotes(allDailyNotes);
+            allDailyNotes = sortDailyNotes(allDailyNotes);
             return;
         }
 
@@ -117,13 +116,13 @@
 
         if (fileDate.isBetween(lastRenderedDailyNoteDate, firstRenderedDailyNoteDate)) {
             renderedDailyNotes.push(file);
-            renderedDailyNotes = sortNotes(renderedDailyNotes);
+            renderedDailyNotes = sortDailyNotes(renderedDailyNotes);
         } else if (fileDate.isBefore(lastRenderedDailyNoteDate)) {
             allDailyNotes.push(file);
-            allDailyNotes = sortNotes(allDailyNotes);
+            allDailyNotes = sortDailyNotes(allDailyNotes);
         } else if (fileDate.isAfter(firstRenderedDailyNoteDate)) {
             renderedDailyNotes.push(file);
-            renderedDailyNotes = sortNotes(renderedDailyNotes);
+            renderedDailyNotes = sortDailyNotes(renderedDailyNotes);
         }
 
         if (fileDate.isSame(moment(), 'day')) hasCurrentDay = true;
