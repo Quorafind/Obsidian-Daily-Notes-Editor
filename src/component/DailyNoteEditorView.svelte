@@ -10,12 +10,14 @@
         getDailyNote,
         createDailyNote,
         getDateFromFile,
-        getDailyNoteSettings
+        getDailyNoteSettings,
+        DEFAULT_DAILY_NOTE_FORMAT
     } from 'obsidian-daily-notes-interface';
 
     export let plugin: DailyNoteViewPlugin;
     export let leaf: WorkspaceLeaf;
     const size = 1;
+    let intervalId;
 
     let cacheDailyNotes: Record<string, any>;
     let allDailyNotes: TFile[] = [];
@@ -47,17 +49,25 @@
     }
 
     async function createNewDailyNote() {
-        const fileFormat = getDailyNoteSettings().format || 'YYYY-MM-DD';
         const currentDate = moment();
         if (!hasCurrentDay) {
             const currentDailyNote: any = await createDailyNote(currentDate);
             renderedDailyNotes.push(currentDailyNote);
 
-            renderedDailyNotes = renderedDailyNotes.sort((a, b) => {
-                return parseInt(moment(b.basename, fileFormat).format('x')) - parseInt(moment(a.basename, fileFormat).format('x'));
-            });
+            renderedDailyNotes = sortDailyNotes(renderedDailyNotes);
             hasCurrentDay = true;
         }
+    }
+
+    function startFillViewport() {
+        if (!intervalId) {
+            intervalId = setInterval(infiniteHandler, 100); 
+        }
+    }
+
+    function stopFillViewport() {
+        clearInterval(intervalId);
+        intervalId = null;
     }
 
     function infiniteHandler() {
@@ -80,20 +90,22 @@
         checkDailyNote();
     }
 
+    function sortDailyNotes(notes: TFile[]): TFile[] {
+        const fileFormat = getDailyNoteSettings().format || DEFAULT_DAILY_NOTE_FORMAT;
+    
+        return notes.sort((a, b) => {
+            return moment(b.basename, fileFormat).valueOf() - moment(a.basename, fileFormat).valueOf();
+        });
+    }
+
     export function fileCreate(file: TFile) {
         const fileDate = getDateFromFile(file as TFile, 'day');
-        const fileFormat = getDailyNoteSettings().format || 'YYYY-MM-DD';
+        const fileFormat = getDailyNoteSettings().format || DEFAULT_DAILY_NOTE_FORMAT;
         if (!fileDate) return;
-
-        function sortNotes(notes: TFile[]): TFile[] {
-            return notes.sort((a, b) => {
-                return moment(b.basename, fileFormat).valueOf() - moment(a.basename, fileFormat).valueOf();
-            });
-        }
 
         if (renderedDailyNotes.length === 0) {
             allDailyNotes.push(file);
-            allDailyNotes = sortNotes(allDailyNotes);
+            allDailyNotes = sortDailyNotes(allDailyNotes);
             return;
         }
 
@@ -104,13 +116,13 @@
 
         if (fileDate.isBetween(lastRenderedDailyNoteDate, firstRenderedDailyNoteDate)) {
             renderedDailyNotes.push(file);
-            renderedDailyNotes = sortNotes(renderedDailyNotes);
+            renderedDailyNotes = sortDailyNotes(renderedDailyNotes);
         } else if (fileDate.isBefore(lastRenderedDailyNoteDate)) {
             allDailyNotes.push(file);
-            allDailyNotes = sortNotes(allDailyNotes);
+            allDailyNotes = sortDailyNotes(allDailyNotes);
         } else if (fileDate.isAfter(firstRenderedDailyNoteDate)) {
             renderedDailyNotes.push(file);
-            renderedDailyNotes = sortNotes(renderedDailyNotes);
+            renderedDailyNotes = sortDailyNotes(renderedDailyNotes);
         }
 
         if (fileDate.isSame(moment(), 'day')) hasCurrentDay = true;
@@ -143,7 +155,7 @@
     {#each renderedDailyNotes as file (file)}
         <DailyNote file={file} plugin={plugin} leaf={leaf}/>
     {/each}
-    <div use:inview={{}} on:inview_init={infiniteHandler} on:inview_change={infiniteHandler}/>
+    <div use:inview={{}} on:inview_init={startFillViewport} on:inview_change={infiniteHandler} on:inview_leave={stopFillViewport} />
     {#if !hasMore}
         <div class="no-more-text">—— No more of results ——</div>
     {/if}
