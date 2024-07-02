@@ -61,7 +61,7 @@
 
     function startFillViewport() {
         if (!intervalId) {
-            intervalId = setInterval(infiniteHandler, 100); 
+            intervalId = setInterval(infiniteHandler, 1);
         }
     }
 
@@ -92,7 +92,7 @@
 
     function sortDailyNotes(notes: TFile[]): TFile[] {
         const fileFormat = getDailyNoteSettings().format || DEFAULT_DAILY_NOTE_FORMAT;
-    
+
         return notes.sort((a, b) => {
             return moment(b.basename, fileFormat).valueOf() - moment(a.basename, fileFormat).valueOf();
         });
@@ -155,7 +155,8 @@
     {#each renderedDailyNotes as file (file)}
         <DailyNote file={file} plugin={plugin} leaf={leaf}/>
     {/each}
-    <div use:inview={{}} on:inview_init={startFillViewport} on:inview_change={infiniteHandler} on:inview_leave={stopFillViewport} />
+    <div use:inview={{}} on:inview_init={startFillViewport} on:inview_change={infiniteHandler}
+         on:inview_leave={stopFillViewport}/>
     {#if !hasMore}
         <div class="no-more-text">—— No more of results ——</div>
     {/if}
