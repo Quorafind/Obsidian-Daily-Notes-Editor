@@ -4,7 +4,7 @@ import {
     TFile,
     Workspace,
     WorkspaceContainer, WorkspaceItem,
-    WorkspaceLeaf, TAbstractFile, Scope, Notice
+    WorkspaceLeaf, TAbstractFile, Scope
 } from 'obsidian';
 import DailyNoteEditorView from "./component/DailyNoteEditorView.svelte";
 import { around } from "monkey-around";
@@ -84,7 +84,7 @@ export default class DailyNoteViewPlugin extends Plugin {
 
         this.registerView(DAILY_NOTE_VIEW_TYPE, (leaf: WorkspaceLeaf) => (this.view = new DailyNoteView(leaf, this)));
 
-        this.addRibbonIcon('daily-note', 'Open Daily Note Editor', (evt: MouseEvent) => this.openDailyNoteEditor());
+        this.addRibbonIcon('calendar-range', 'Open Daily Note Editor', (evt: MouseEvent) => this.openDailyNoteEditor());
         this.addCommand({
             id: 'open-daily-note-editor',
             name: 'Open Daily Note Editor',

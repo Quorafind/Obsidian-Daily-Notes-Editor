@@ -13,6 +13,8 @@
         getDailyNoteSettings,
         DEFAULT_DAILY_NOTE_FORMAT
     } from 'obsidian-daily-notes-interface';
+    import { onMount } from "svelte";
+
 
     export let plugin: DailyNoteViewPlugin;
     export let leaf: WorkspaceLeaf;
@@ -27,6 +29,9 @@
     let hasFetch = false;
     let hasCurrentDay: boolean = true;
 
+    let firstLoaded = true;
+    let loaderRef: HTMLDivElement;
+
     $: if (hasMore && !hasFetch) {
         cacheDailyNotes = getAllDailyNotes();
         // Build notes list by date in descending order.
@@ -36,6 +41,12 @@
         hasFetch = true;
         checkDailyNote();
     }
+
+    onMount(() => {
+        checkDailyNote();
+        startFillViewport();
+
+    });
 
     function checkDailyNote() {
         // @ts-ignore
@@ -79,6 +90,18 @@
                 ...renderedDailyNotes,
                 ...allDailyNotes.splice(0, size)
             ];
+            if (firstLoaded) {
+                window.setTimeout(() => {
+                    ensureViewFilled();
+                    firstLoaded = false;
+                }, 100);
+            }
+        }
+    }
+
+    function ensureViewFilled() {
+        if (loaderRef && loaderRef.getBoundingClientRect().top < leaf.view.contentEl.innerHeight) {
+            infiniteHandler();
         }
     }
 
@@ -155,12 +178,15 @@
     {#each renderedDailyNotes as file (file)}
         <DailyNote file={file} plugin={plugin} leaf={leaf}/>
     {/each}
-    <div use:inview={{}} on:inview_init={startFillViewport} on:inview_change={infiniteHandler}
+    <div bind:this={loaderRef} class="dn-view-loader" use:inview={{
+        root: leaf.view.containerEl
+    }} on:inview_init={startFillViewport} on:inview_change={infiniteHandler}
          on:inview_leave={stopFillViewport}/>
     {#if !hasMore}
         <div class="no-more-text">—— No more of results ——</div>
     {/if}
 </div>
+
 
 <style>
     .dn-stock {
@@ -196,9 +222,4 @@
         margin-right: auto;
         text-align: center;
     }
-
-    /*.daily-note-view{*/
-    /*    display: flex;*/
-    /*    flex-direction: row;*/
-    /*}*/
 </style>
