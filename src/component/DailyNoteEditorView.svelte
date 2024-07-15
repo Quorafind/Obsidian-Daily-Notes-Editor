@@ -122,7 +122,7 @@
     }
 
     export function fileCreate(file: TFile) {
-        const fileDate = getDateFromFile(file as TFile, 'day');
+        const fileDate = getDateFromFile(file as any, 'day');
         const fileFormat = getDailyNoteSettings().format || DEFAULT_DAILY_NOTE_FORMAT;
         if (!fileDate) return;
 
@@ -153,7 +153,7 @@
 
 
     export function fileDelete(file: TFile) {
-        if (!getDateFromFile(file as TFile, 'day')) return;
+        if (!getDateFromFile(file as any, 'day')) return;
         renderedDailyNotes = renderedDailyNotes.filter((dailyNote) => {
             return dailyNote.basename !== file.basename;
         });
