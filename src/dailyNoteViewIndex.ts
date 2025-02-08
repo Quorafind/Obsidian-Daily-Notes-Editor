@@ -4,7 +4,7 @@ import {
     TFile,
     Workspace,
     WorkspaceContainer, WorkspaceItem,
-    WorkspaceLeaf, TAbstractFile, Scope
+    WorkspaceLeaf, TAbstractFile, Scope, App
 } from 'obsidian';
 import DailyNoteEditorView from "./component/DailyNoteEditorView.svelte";
 import { around } from "monkey-around";
@@ -12,6 +12,10 @@ import { DailyNoteEditor, isDailyNoteLeaf } from "./leafView";
 import "./style/index.css";
 import { addIconList } from "./utils/icon";
 import { DailyNoteSettings, DailyNoteSettingTab, DEFAULT_SETTINGS } from "./dailyNoteSettings";
+
+declare global {
+    var app: App;
+}
 
 export const DAILY_NOTE_VIEW_TYPE = "daily-note-editor-view";
 
@@ -236,5 +240,10 @@ export default class DailyNoteViewPlugin extends Plugin {
 
     async saveSettings() {
         await this.saveData(this.settings);
+        if (this.view?.view) {
+            this.view.view.hasFetch = false;
+            this.view.view.allDailyNotes = [];
+            this.view.view.renderedDailyNotes = [];
+        }
     }
 }

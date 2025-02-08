@@ -34,10 +34,18 @@
 
     $: if (hasMore && !hasFetch) {
         cacheDailyNotes = getAllDailyNotes();
-        // Build notes list by date in descending order.
-        for (const string of Object.keys(cacheDailyNotes).sort().reverse()) {
-            allDailyNotes.push(<TFile>cacheDailyNotes[string]);
+        const today = moment().startOf('day');
+        
+        const dateList = Object.keys(cacheDailyNotes).sort().reverse();
+        
+        const filteredDates = plugin.settings.hideUnreachedDates 
+            ? dateList.filter(date => moment(date, "YYYY-MM-DD").isSameOrBefore(today))
+            : dateList;
+            
+        for (const dateStr of filteredDates) {
+            allDailyNotes.push(<TFile>cacheDailyNotes[dateStr]);
         }
+        
         hasFetch = true;
         checkDailyNote();
     }

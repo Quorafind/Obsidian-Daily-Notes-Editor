@@ -18,11 +18,16 @@ import {
     WorkspaceLeaf,
     WorkspaceSplit,
     WorkspaceTabs,
+    App
 } from "obsidian";
 
 import type DailyNoteViewPlugin from "./dailyNoteViewIndex";
 import { genId } from "./utils/utils";
 
+// 添加全局 app 声明
+declare global {
+    var app: App;
+}
 
 export interface DailyNoteEditorParent {
     hoverPopover: DailyNoteEditor | null;
@@ -523,11 +528,11 @@ export class DailyNoteEditor extends nosuper(HoverPopover) {
         return leaf;
     }
 
-    buildState(parentMode: string, eState?: EphemeralState) {
+    buildState(parentMode: string, eState?: EphemeralState): OpenViewState {
         return {
-            active: false, // Don't let Obsidian force focus if we have autofocus off
-            state: {mode: "source"}, // Don't set any state for the view, because this leaf is stayed on another view.
-            eState: eState,
+            active: false,
+            state: {mode: "source"},
+            eState: eState as Record<string, unknown>
         };
     }
 

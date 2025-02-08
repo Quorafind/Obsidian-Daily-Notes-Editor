@@ -4,11 +4,13 @@ import { App, debounce, PluginSettingTab, Setting } from "obsidian";
 export interface DailyNoteSettings {
     hideFrontmatter: boolean;
     hideBacklinks: boolean;
+    hideUnreachedDates: boolean;
 }
 
 export const DEFAULT_SETTINGS: DailyNoteSettings = {
     hideFrontmatter: false,
     hideBacklinks: false,
+    hideUnreachedDates: false,
 };
 
 
@@ -76,5 +78,14 @@ export class DailyNoteSettingTab extends PluginSettingTab {
                 })
             );
 
+        new Setting(containerEl)
+            .setName('Hide future dates')
+            .setDesc('Hide the diary entries for dates that have not yet arrived.')
+            .addToggle(toggle => toggle
+                .setValue(this.plugin.settings.hideUnreachedDates)
+                .onChange(async (value) => {
+                    this.plugin.settings.hideUnreachedDates = value;
+                    await this.plugin.saveSettings();
+                }));
     }
 }
