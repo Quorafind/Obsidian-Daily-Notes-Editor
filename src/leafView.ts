@@ -24,7 +24,6 @@ import {
 import type DailyNoteViewPlugin from "./dailyNoteViewIndex";
 import { genId } from "./utils/utils";
 
-// 添加全局 app 声明
 declare global {
     var app: App;
 }
