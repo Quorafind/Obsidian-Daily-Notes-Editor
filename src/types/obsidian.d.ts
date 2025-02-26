@@ -158,6 +158,7 @@ declare module "obsidian" {
 
         headerEl: HTMLElement;
         contentEl: HTMLElement;
+        titleEl: HTMLElement;
     }
 
     interface EmptyView extends View {

@@ -59,6 +59,9 @@
         hasMore = filteredFiles.length > 0;
         firstLoaded = true;
         startFillViewport();
+        
+        // Update the title element with the new range information
+        updateTitleElement();
     }
 
     onMount(() => {
@@ -66,7 +69,48 @@
         filteredFiles = fileManager.getFilteredFiles();
         hasMore = filteredFiles.length > 0;
         startFillViewport();
+        
+        // Initialize the title element
+        updateTitleElement();
     });
+
+    // Function to update the title element with range information
+    function updateTitleElement() {
+        if (!leaf || !leaf.view || !leaf.view.titleEl) return;
+         
+        // Get the title element and clear it
+        const titleEl = leaf.view.titleEl;
+        titleEl.empty();
+        
+        // Set the base title
+        let titleText = '';
+        
+        // Add range information based on the current selection mode and range
+        if (selectionMode === "daily" && selectedRange !== 'all') {
+            if (selectedRange === 'custom' && customRange) {
+                titleText = `Showing notes from: ${moment(customRange.start).format('YYYY-MM-DD')} to ${moment(customRange.end).format('YYYY-MM-DD')}`;
+            } else {
+                titleText = `Showing notes for: ${selectedRange}`;
+            }
+        } else if (selectionMode === "folder") {
+            titleText = `Showing files from folder: ${target}`;
+            if (selectedRange !== 'all') {
+                titleText += ` (${timeField === 'ctime' ? 'created' : 'modified'} ${selectedRange})`;
+            }
+        } else if (selectionMode === "tag") {
+            titleText = `Showing files with tag: ${target}`;
+            if (selectedRange !== 'all') {
+                titleText += ` (${timeField === 'ctime' ? 'created' : 'modified'} ${selectedRange})`;
+            }
+        }
+        
+        // Set the title text
+        if (titleText) {
+            titleEl.setText(titleText);
+        } else {
+            titleEl.setText("Daily Notes");
+        }
+    }
 
     function startFillViewport() {
         if (!intervalId) {
@@ -146,35 +190,6 @@
 </script>
 
 <div class="daily-note-view">
-    <div class="dn-range-indicator">
-        {#if selectionMode === "daily" && selectedRange !== 'all'}
-            <div class="dn-range-text">
-                {#if selectedRange === 'custom' && customRange}
-                    Showing notes from: {moment(customRange.start).format('YYYY-MM-DD')} to {moment(customRange.end).format('YYYY-MM-DD')}
-                {:else}
-                    Showing notes for: {selectedRange}
-                {/if}
-            </div>
-        {:else if selectionMode === "folder"}
-            <div class="dn-range-text">
-                Showing files from folder: {target}
-                {#if selectedRange !== 'all'}
-                    <span class="dn-time-field">
-                        ({timeField === 'ctime' ? 'created' : 'modified'} {selectedRange})
-                    </span>
-                {/if}
-            </div>
-        {:else if selectionMode === "tag"}
-            <div class="dn-range-text">
-                Showing files with tag: {target}
-                {#if selectedRange !== 'all'}
-                    <span class="dn-time-field">
-                        ({timeField === 'ctime' ? 'created' : 'modified'} {selectedRange})
-                    </span>
-                {/if}
-            </div>
-        {/if}
-    </div>
     {#if renderedFiles.length === 0}
         <div class="dn-stock"></div>
     {/if}
@@ -199,11 +214,6 @@
 
 
 <style>
-    .dn-range-indicator:empty {
-        display: none;
-    }
-
-
     .dn-stock {
         height: 1000px;
         width: 100%;
@@ -236,24 +246,5 @@
         margin-left: auto;
         margin-right: auto;
         text-align: center;
-    }
-    
-    .dn-range-indicator {
-        margin-left: auto;
-        margin-right: auto;
-        max-width: var(--file-line-width);
-        padding: 5px 0;
-    }
-    
-    .dn-range-text {
-        font-size: 0.8em;
-        color: var(--color-base-50);
-        text-align: center;
-        font-style: italic;
-    }
-    
-    .dn-time-field {
-        font-size: 0.9em;
-        color: var(--color-base-40);
     }
 </style>
