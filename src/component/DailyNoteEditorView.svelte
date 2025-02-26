@@ -5,149 +5,68 @@
     import { TFile, moment } from "obsidian";
     import DailyNote from "./DailyNote.svelte";
     import { inview } from "svelte-inview";
-    import {
-        getAllDailyNotes,
-        getDailyNote,
-        createDailyNote, 
-        getDateFromFile,
-        getDailyNoteSettings,
-        DEFAULT_DAILY_NOTE_FORMAT
-    } from 'obsidian-daily-notes-interface';
+    import { TimeRange, SelectionMode, TimeField } from "../types/time";
     import { onMount } from "svelte";
-    import { TimeRange } from "../types/time";
+    import { FileManager, FileManagerOptions } from "../utils/fileManager";
 
 
     export let plugin: DailyNoteViewPlugin;
     export let leaf: WorkspaceLeaf;
     export let selectedRange: TimeRange = "all";
     export let customRange: { start: Date; end: Date } | null = null;
+    export let selectionMode: SelectionMode = "daily";
+    export let target: string = "";
+    export let timeField: TimeField = "mtime"; // 默认使用修改时间
+    
     const size = 1;
     let intervalId;
 
-    let cacheDailyNotes: Record<string, any>;
-    let allDailyNotes: TFile[] = [];
-    let renderedDailyNotes: TFile[] = [];
-    let filteredDailyNotes: TFile[] = [];
+    let renderedFiles: TFile[] = [];
+    let filteredFiles: TFile[] = [];
 
     let hasMore = true;
-    let hasFetch = false;
-    let hasCurrentDay: boolean = true;
-
     let firstLoaded = true;
     let loaderRef: HTMLDivElement;
 
-    $: if (hasMore && !hasFetch) {
-        cacheDailyNotes = getAllDailyNotes();
-        // Build notes list by date in descending order.
-        for (const string of Object.keys(cacheDailyNotes).sort().reverse()) {
-            allDailyNotes.push(<TFile>cacheDailyNotes[string]);
-        }
-        hasFetch = true;
-        checkDailyNote();
-        filterNotesByRange();
-    }
+    // Create the file manager
+    let fileManager: FileManager;
+    
+    $: fileManagerOptions = {
+        mode: selectionMode,
+        target: target,
+        timeRange: selectedRange,
+        customRange: customRange,
+        app: plugin.app,
+        timeField: timeField
+    } as FileManagerOptions;
 
-    $: if (selectedRange && hasFetch) {
-        filterNotesByRange();
-    }
-
-    onMount(() => {
-        checkDailyNote();
-        startFillViewport();
-    });
-
-    function filterNotesByRange() {
-        const now = moment();
-        const fileFormat = getDailyNoteSettings().format || DEFAULT_DAILY_NOTE_FORMAT;
+    $: if (fileManager && (selectedRange !== fileManager.options.timeRange || 
+                          customRange !== fileManager.options.customRange ||
+                          selectionMode !== fileManager.options.mode ||
+                          target !== fileManager.options.target ||
+                          timeField !== fileManager.options.timeField)) {
+        fileManager.updateOptions({
+            timeRange: selectedRange,
+            customRange: customRange,
+            mode: selectionMode,
+            target: target,
+            timeField: timeField
+        });
         
-        // Reset filtered notes
-        filteredDailyNotes = [];
-        
-        // Filter notes based on selected range
-        if (selectedRange === 'all') {
-            filteredDailyNotes = [...allDailyNotes];
-        } else {
-            filteredDailyNotes = allDailyNotes.filter(file => {
-                const fileDate = moment(file.basename, fileFormat);
-                
-                switch (selectedRange) {
-                    case 'week':
-                        return fileDate.isSame(now, 'week');
-                    case 'month':
-                        return fileDate.isSame(now, 'month');
-                    case 'year':
-                        return fileDate.isSame(now, 'year');
-                    case 'last-week':
-                        return fileDate.isBetween(
-                            moment().subtract(1, 'week').startOf('week'),
-                            moment().subtract(1, 'week').endOf('week'),
-                            null,
-                            '[]'
-                        );
-                    case 'last-month':
-                        return fileDate.isBetween(
-                            moment().subtract(1, 'month').startOf('month'),
-                            moment().subtract(1, 'month').endOf('month'),
-                            null,
-                            '[]'
-                        );
-                    case 'last-year':
-                        return fileDate.isBetween(
-                            moment().subtract(1, 'year').startOf('year'),
-                            moment().subtract(1, 'year').endOf('year'),
-                            null,
-                            '[]'
-                        );
-                    case 'quarter':
-                        return fileDate.isSame(now, 'quarter');
-                    case 'last-quarter':
-                        return fileDate.isBetween(
-                            moment().subtract(1, 'quarter').startOf('quarter'),
-                            moment().subtract(1, 'quarter').endOf('quarter'),
-                            null,
-                            '[]'
-                        );
-                    case 'custom':
-                        if (customRange) {
-                            const startDate = moment(customRange.start);
-                            const endDate = moment(customRange.end);
-                            return fileDate.isBetween(startDate, endDate, null, '[]');
-                        }
-                        return false;
-                    default:
-                        return true;
-                }
-            });
-        }
-        
-        // Reset rendered notes and start filling viewport again
-        renderedDailyNotes = [];
-        hasMore = filteredDailyNotes.length > 0;
+        // Reset rendered files and start filling viewport again
+        renderedFiles = [];
+        filteredFiles = fileManager.getFilteredFiles();
+        hasMore = filteredFiles.length > 0;
         firstLoaded = true;
         startFillViewport();
     }
 
-    function checkDailyNote() {
-        // @ts-ignore
-        const currentDate = moment();
-        const currentDailyNote = getDailyNote(currentDate, cacheDailyNotes);
-
-        // console.log(currentDate, cacheDailyNotes);
-        if (!currentDailyNote) {
-            hasCurrentDay = false;
-        }
-    }
-
-    async function createNewDailyNote() {
-        const currentDate = moment();
-        if (!hasCurrentDay) {
-            const currentDailyNote: any = await createDailyNote(currentDate);
-            renderedDailyNotes.push(currentDailyNote);
-
-            renderedDailyNotes = sortDailyNotes(renderedDailyNotes);
-            hasCurrentDay = true;
-        }
-    }
+    onMount(() => {
+        fileManager = new FileManager(fileManagerOptions);
+        filteredFiles = fileManager.getFilteredFiles();
+        hasMore = filteredFiles.length > 0;
+        startFillViewport();
+    });
 
     function startFillViewport() {
         if (!intervalId) {
@@ -161,13 +80,13 @@
     }
 
     function infiniteHandler() {
-        if (!hasFetch || !hasMore) return;
-        if (filteredDailyNotes.length === 0 && hasFetch) {
+        if (!fileManager || !hasMore) return;
+        if (filteredFiles.length === 0) {
             hasMore = false;
         } else {
-            renderedDailyNotes = [
-                ...renderedDailyNotes,
-                ...filteredDailyNotes.splice(0, size)
+            renderedFiles = [
+                ...renderedFiles,
+                ...filteredFiles.splice(0, size)
             ];
             if (firstLoaded) {
                 window.setTimeout(() => {
@@ -184,71 +103,51 @@
         }
     }
 
+    async function createNewDailyNote() {
+        const newNote = await fileManager.createNewDailyNote();
+        if (newNote) {
+            renderedFiles = [newNote, ...renderedFiles];
+        }
+    }
+
     export function tick() {
-        renderedDailyNotes = renderedDailyNotes;
+        renderedFiles = renderedFiles;
     }
 
     export function check() {
-        checkDailyNote();
-    }
-
-    function sortDailyNotes(notes: TFile[]): TFile[] {
-        const fileFormat = getDailyNoteSettings().format || DEFAULT_DAILY_NOTE_FORMAT;
-
-        return notes.sort((a, b) => {
-            return moment(b.basename, fileFormat).valueOf() - moment(a.basename, fileFormat).valueOf();
-        });
+        fileManager.checkDailyNote();
     }
 
     export function fileCreate(file: TFile) {
-        const fileDate = getDateFromFile(file as any, 'day');
-        const fileFormat = getDailyNoteSettings().format || DEFAULT_DAILY_NOTE_FORMAT;
-        if (!fileDate) return;
-
-        if (renderedDailyNotes.length === 0) {
-            allDailyNotes.push(file);
-            allDailyNotes = sortDailyNotes(allDailyNotes);
-            filterNotesByRange();
-            return;
+        fileManager.fileCreate(file);
+        
+        // Update the rendered files if needed
+        if (selectionMode === "daily") {
+            // For daily notes, we need to check if the file should be added to the rendered files
+            const filteredFiles = fileManager.getFilteredFiles();
+            if (filteredFiles.some(f => f.basename === file.basename) && 
+                !renderedFiles.some(f => f.basename === file.basename)) {
+                renderedFiles = [file, ...renderedFiles];
+            }
+        } else {
+            // For folder and tag modes, we can simply update the rendered files
+            renderedFiles = fileManager.getFilteredFiles().slice(0, renderedFiles.length);
         }
-
-        const lastRenderedDailyNote = renderedDailyNotes[renderedDailyNotes.length - 1];
-        const firstRenderedDailyNote = renderedDailyNotes[0];
-        const lastRenderedDailyNoteDate = moment(lastRenderedDailyNote.basename, fileFormat);
-        const firstRenderedDailyNoteDate = moment(firstRenderedDailyNote.basename, fileFormat);
-
-        if (fileDate.isBetween(lastRenderedDailyNoteDate, firstRenderedDailyNoteDate)) {
-            renderedDailyNotes.push(file);
-            renderedDailyNotes = sortDailyNotes(renderedDailyNotes);
-        } else if (fileDate.isBefore(lastRenderedDailyNoteDate)) {
-            allDailyNotes.push(file);
-            allDailyNotes = sortDailyNotes(allDailyNotes);
-            filterNotesByRange();
-        } else if (fileDate.isAfter(firstRenderedDailyNoteDate)) {
-            renderedDailyNotes.push(file);
-            renderedDailyNotes = sortDailyNotes(renderedDailyNotes);
-        }
-
-        if (fileDate.isSame(moment(), 'day')) hasCurrentDay = true;
     }
 
-
     export function fileDelete(file: TFile) {
-        if (!getDateFromFile(file as any, 'day')) return;
-        renderedDailyNotes = renderedDailyNotes.filter((dailyNote) => {
+        fileManager.fileDelete(file);
+        
+        // Remove the file from rendered files if it exists
+        renderedFiles = renderedFiles.filter((dailyNote) => {
             return dailyNote.basename !== file.basename;
         });
-        allDailyNotes = allDailyNotes.filter((dailyNote) => {
-            return dailyNote.basename !== file.basename;
-        });
-        filterNotesByRange();
-        checkDailyNote();
     }
 </script>
 
 <div class="daily-note-view">
     <div class="dn-range-indicator">
-        {#if selectedRange !== 'all'}
+        {#if selectionMode === "daily" && selectedRange !== 'all'}
             <div class="dn-range-text">
                 {#if selectedRange === 'custom' && customRange}
                     Showing notes from: {moment(customRange.start).format('YYYY-MM-DD')} to {moment(customRange.end).format('YYYY-MM-DD')}
@@ -256,19 +155,37 @@
                     Showing notes for: {selectedRange}
                 {/if}
             </div>
+        {:else if selectionMode === "folder"}
+            <div class="dn-range-text">
+                Showing files from folder: {target}
+                {#if selectedRange !== 'all'}
+                    <span class="dn-time-field">
+                        ({timeField === 'ctime' ? 'created' : 'modified'} {selectedRange})
+                    </span>
+                {/if}
+            </div>
+        {:else if selectionMode === "tag"}
+            <div class="dn-range-text">
+                Showing files with tag: {target}
+                {#if selectedRange !== 'all'}
+                    <span class="dn-time-field">
+                        ({timeField === 'ctime' ? 'created' : 'modified'} {selectedRange})
+                    </span>
+                {/if}
+            </div>
         {/if}
     </div>
-    {#if renderedDailyNotes.length === 0}
+    {#if renderedFiles.length === 0}
         <div class="dn-stock"></div>
     {/if}
-    {#if !hasCurrentDay && (selectedRange === 'all' || selectedRange === 'week' || selectedRange === 'month' || selectedRange === 'year' || selectedRange === 'quarter')}
+    {#if selectionMode === "daily" && !fileManager?.hasCurrentDayNote() && (selectedRange === 'all' || selectedRange === 'week' || selectedRange === 'month' || selectedRange === 'year' || selectedRange === 'quarter')}
         <div class="dn-blank-day" on:click={createNewDailyNote} aria-hidden="true">
             <div class="dn-blank-day-text">
                 Create a daily note for today ✍
             </div>
         </div>
     {/if}
-    {#each renderedDailyNotes as file (file)}
+    {#each renderedFiles as file (file)}
         <DailyNote file={file} plugin={plugin} leaf={leaf}/>
     {/each}
     <div bind:this={loaderRef} class="dn-view-loader" use:inview={{
@@ -328,5 +245,10 @@
         color: var(--color-base-50);
         text-align: center;
         font-style: italic;
+    }
+    
+    .dn-time-field {
+        font-size: 0.9em;
+        color: var(--color-base-40);
     }
 </style>

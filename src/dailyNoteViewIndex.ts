@@ -25,7 +25,7 @@ import {
     DailyNoteSettingTab,
     DEFAULT_SETTINGS,
 } from "./dailyNoteSettings";
-import { TimeRange } from "./types/time";
+import { TimeRange, TimeField } from "./types/time";
 import {
     getAllDailyNotes,
     getDailyNote,
@@ -45,6 +45,9 @@ class DailyNoteView extends ItemView {
     scope: Scope;
 
     selectedDaysRange: TimeRange = "all";
+    selectionMode: "daily" | "folder" | "tag" = "daily";
+    target: string = "";
+    timeField: TimeField = "mtime"; // 默认使用修改时间
 
     customRange: {
         start: Date;
@@ -63,11 +66,25 @@ class DailyNoteView extends ItemView {
     }
 
     getDisplayText(): string {
-        return "Daily Note";
+        if (this.selectionMode === "daily") {
+            return "Daily Notes";
+        } else if (this.selectionMode === "folder") {
+            return `Folder: ${this.target}`;
+        } else if (this.selectionMode === "tag") {
+            return `Tag: ${this.target}`;
+        }
+        return "Notes";
     }
 
     getIcon(): string {
-        return "daily-note";
+        if (this.selectionMode === "daily") {
+            return "daily-note";
+        } else if (this.selectionMode === "folder") {
+            return "folder";
+        } else if (this.selectionMode === "tag") {
+            return "tag";
+        }
+        return "document";
     }
 
     onFileCreate = (file: TAbstractFile) => {
@@ -92,6 +109,25 @@ class DailyNoteView extends ItemView {
         }
     }
 
+    setSelectionMode(mode: "daily" | "folder" | "tag", target: string = "") {
+        this.selectionMode = mode;
+        this.target = target;
+
+        if (this.view) {
+            this.view.$set({
+                selectionMode: mode,
+                target: target,
+            });
+        }
+    }
+
+    setTimeField(field: TimeField) {
+        this.timeField = field;
+        if (this.view) {
+            this.view.$set({ timeField: field });
+        }
+    }
+
     openDailyNoteEditor() {
         this.plugin.openDailyNoteEditor();
     }
@@ -100,6 +136,65 @@ class DailyNoteView extends ItemView {
         this.scope.register(["Mod"], "f", (e) => {
             // do-nothing
         });
+
+        // Add action for selecting view mode
+        this.addAction("layers-2", "Select view mode", (e) => {
+            const menu = new Menu();
+
+            // Add mode selection options
+            const addModeOption = (
+                title: string,
+                mode: "daily" | "folder" | "tag"
+            ) => {
+                menu.addItem((item) => {
+                    item.setTitle(title);
+                    item.setChecked(this.selectionMode === mode);
+                    item.onClick(() => {
+                        if (mode === "daily") {
+                            this.setSelectionMode(mode);
+                        } else {
+                            // For folder and tag modes, we need to prompt for the target
+                            const modal = new SelectTargetModal(
+                                this.plugin.app,
+                                mode,
+                                (target: string) => {
+                                    this.setSelectionMode(mode, target);
+                                }
+                            );
+                            modal.open();
+                        }
+                    });
+                });
+            };
+
+            addModeOption("Daily Notes", "daily");
+            addModeOption("Folder", "folder");
+            addModeOption("Tag", "tag");
+
+            menu.showAtMouseEvent(e);
+        });
+
+        // Add action for selecting time field (for folder and tag modes)
+        this.addAction("clock", "Select time field", (e) => {
+            const menu = new Menu();
+
+            // Add time field selection options
+            const addTimeFieldOption = (title: string, field: TimeField) => {
+                menu.addItem((item) => {
+                    item.setTitle(title);
+                    item.setChecked(this.timeField === field);
+                    item.onClick(() => {
+                        this.setTimeField(field);
+                    });
+                });
+            };
+
+            addTimeFieldOption("Creation Time", "ctime");
+            addTimeFieldOption("Modification Time", "mtime");
+
+            menu.showAtMouseEvent(e);
+        });
+
         this.addAction("calendar-range", "Select date range", (e) => {
             const menu = new Menu();
             // Add range selection options
@@ -146,6 +241,9 @@ class DailyNoteView extends ItemView {
                 leaf: this.leaf,
                 selectedRange: this.selectedDaysRange,
                 customRange: this.customRange,
+                selectionMode: this.selectionMode,
+                target: this.target,
+                timeField: this.timeField,
             },
         });
         this.app.vault.on("create", this.onFileCreate);
@@ -239,6 +337,106 @@ class CustomRangeModal extends Modal {
     }
 }
 
+class SelectTargetModal extends Modal {
+    saveCallback: (target: string) => void;
+    mode: "folder" | "tag";
+    targetInput: HTMLInputElement;
+
+    constructor(
+        app: App,
+        mode: "folder" | "tag",
+        saveCallback: (target: string) => void
+    ) {
+        super(app);
+        this.mode = mode;
+        this.saveCallback = saveCallback;
+    }
+
+    onOpen() {
+        const { contentEl } = this;
+        contentEl.empty();
+
+        contentEl.createEl("h2", {
+            text: this.mode === "folder" ? "Select Folder" : "Select Tag",
+        });
+
+        const form = contentEl.createEl("form");
+        form.addEventListener("submit", (e) => {
+            e.preventDefault();
+            this.save();
+        });
+
+        const targetSetting = form.createDiv();
+        targetSetting.addClass("setting-item");
+
+        const targetSettingInfo = targetSetting.createDiv();
+        targetSettingInfo.addClass("setting-item-info");
+
+        targetSettingInfo.createEl("div", {
+            text: this.mode === "folder" ? "Folder Path" : "Tag Name",
+            cls: "setting-item-name",
+        });
+
+        targetSettingInfo.createEl("div", {
+            text:
+                this.mode === "folder"
+                    ? "Enter the path to the folder (e.g., 'folder/subfolder')"
+                    : "Enter the tag name without the '#' (e.g., 'tag')",
+            cls: "setting-item-description",
+        });
+
+        const targetSettingControl = targetSetting.createDiv();
+        targetSettingControl.addClass("setting-item-control");
+
+        this.targetInput = targetSettingControl.createEl("input", {
+            type: "text",
+            value: "",
+        });
+        this.targetInput.addClass("target-input");
+
+        const footerEl = contentEl.createDiv();
+        footerEl.addClass("modal-button-container");
+
+        footerEl
+            .createEl("button", {
+                text: "Cancel",
+                cls: "mod-warning",
+                attr: {
+                    type: "button",
+                },
+            })
+            .addEventListener("click", () => {
+                this.close();
+            });
+
+        footerEl
+            .createEl("button", {
+                text: "Save",
+                cls: "mod-cta",
+                attr: {
+                    type: "submit",
+                },
+            })
+            .addEventListener("click", (e) => {
+                e.preventDefault();
+                this.save();
+            });
+    }
+
+    save() {
+        const target = this.targetInput.value.trim();
+        if (target) {
+            this.saveCallback(target);
+            this.close();
+        }
+    }
+
+    onClose() {
+        const { contentEl } = this;
+        contentEl.empty();
+    }
+}
+
 export default class DailyNoteViewPlugin extends Plugin {
     private view: DailyNoteView;
     lastActiveFile: TFile;
@@ -292,6 +490,32 @@ export default class DailyNoteViewPlugin extends Plugin {
         workspace.detachLeavesOfType(DAILY_NOTE_VIEW_TYPE);
         const leaf = workspace.getLeaf(true);
         await leaf.setViewState({ type: DAILY_NOTE_VIEW_TYPE });
+        workspace.revealLeaf(leaf);
+    }
+
+    async openFolderView(folderPath: string, timeField: TimeField = "mtime") {
+        const workspace = this.app.workspace;
+        const leaf = workspace.getLeaf(true);
+        await leaf.setViewState({ type: DAILY_NOTE_VIEW_TYPE });
+
+        // Get the view and set the selection mode to folder
+        const view = leaf.view as DailyNoteView;
+        view.setSelectionMode("folder", folderPath);
+        view.setTimeField(timeField);
+
+        workspace.revealLeaf(leaf);
+    }
+
+    async openTagView(tagName: string, timeField: TimeField = "mtime") {
+        const workspace = this.app.workspace;
+        const leaf = workspace.getLeaf(true);
+        await leaf.setViewState({ type: DAILY_NOTE_VIEW_TYPE });
+
+        // Get the view and set the selection mode to tag
+        const view = leaf.view as DailyNoteView;
+        view.setSelectionMode("tag", tagName);
+        view.setTimeField(timeField);
+
         workspace.revealLeaf(leaf);
     }
 
@@ -353,7 +577,7 @@ export default class DailyNoteViewPlugin extends Plugin {
 
                     // 0.14.x doesn't have WorkspaceContainer; this can just be an instanceof check once 15.x is mandatory:
                     if (
-                        parent === app.workspace.rootSplit ||
+                        parent === this.app.workspace.rootSplit ||
                         (WorkspaceContainer &&
                             parent instanceof WorkspaceContainer)
                     ) {
