@@ -1,0 +1,1 @@
+export type TimeRange = "week" | "month" | "year" | "all" | "last-week" | "last-month" | "last-year" | "quarter" | "last-quarter" | "custom";

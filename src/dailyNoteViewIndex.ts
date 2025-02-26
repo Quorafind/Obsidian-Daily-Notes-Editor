@@ -1,29 +1,48 @@
 import {
     ItemView,
-    Plugin, OpenViewState,
+    Plugin,
+    OpenViewState,
     TFile,
     Workspace,
-    WorkspaceContainer, WorkspaceItem,
-    WorkspaceLeaf, TAbstractFile, Scope
-} from 'obsidian';
+    WorkspaceContainer,
+    WorkspaceItem,
+    WorkspaceLeaf,
+    TAbstractFile,
+    Scope,
+    Menu,
+    Modal,
+    App,
+    ButtonComponent,
+} from "obsidian";
 import DailyNoteEditorView from "./component/DailyNoteEditorView.svelte";
 import { around } from "monkey-around";
 import { DailyNoteEditor, isDailyNoteLeaf } from "./leafView";
 import "./style/index.css";
 import { addIconList } from "./utils/icon";
-import { DailyNoteSettings, DailyNoteSettingTab, DEFAULT_SETTINGS } from "./dailyNoteSettings";
-
+import {
+    DailyNoteSettings,
+    DailyNoteSettingTab,
+    DEFAULT_SETTINGS,
+} from "./dailyNoteSettings";
+import { TimeRange } from "./types/time";
 export const DAILY_NOTE_VIEW_TYPE = "daily-note-editor-view";
 
 export function isEmebeddedLeaf(leaf: WorkspaceLeaf) {
     // Work around missing enhance.js API by checking match condition instead of looking up parent
-    return (leaf as any).containerEl.matches('.dn-leaf-view');
+    return (leaf as any).containerEl.matches(".dn-leaf-view");
 }
 
 class DailyNoteView extends ItemView {
     view: DailyNoteEditorView;
     plugin: DailyNoteViewPlugin;
     scope: Scope;
+
+    selectedDaysRange: TimeRange = "all";
+
+    customRange: {
+        start: Date;
+        end: Date;
+    } | null = null;
 
     constructor(leaf: WorkspaceLeaf, plugin: DailyNoteViewPlugin) {
         super(leaf);
@@ -52,20 +71,164 @@ class DailyNoteView extends ItemView {
         if (file instanceof TFile) this.view.fileDelete(file);
     };
 
-    async onOpen(): Promise<void> {
+    setSelectedRange(range: TimeRange) {
+        this.selectedDaysRange = range;
+        if (this.view) {
+            if (range === "custom") {
+                this.view.$set({
+                    selectedRange: range,
+                    customRange: this.customRange,
+                });
+            } else {
+                this.view.$set({ selectedRange: range });
+            }
+        }
+    }
 
-        this.scope.register(['Mod'], 'f', (e) => {
+    openDailyNoteEditor() {
+        this.plugin.openDailyNoteEditor();
+    }
+
+    async onOpen(): Promise<void> {
+        this.scope.register(["Mod"], "f", (e) => {
             // do-nothing
         });
-        this.view = new DailyNoteEditorView({target: this.contentEl, props: {plugin: this.plugin, leaf: this.leaf}});
+        this.addAction("calendar-range", "Select date range", (e) => {
+            const menu = new Menu();
+            // Add range selection options
+            const addRangeOption = (title: string, range: TimeRange) => {
+                menu.addItem((item) => {
+                    item.setTitle(title);
+                    item.setChecked(this.selectedDaysRange === range);
+                    item.onClick(() => {
+                        this.setSelectedRange(range);
+                    });
+                });
+            };
+
+            addRangeOption("All Notes", "all");
+            addRangeOption("This Week", "week");
+            addRangeOption("This Month", "month");
+            addRangeOption("This Year", "year");
+            addRangeOption("Last Week", "last-week");
+            addRangeOption("Last Month", "last-month");
+            addRangeOption("Last Year", "last-year");
+            addRangeOption("This Quarter", "quarter");
+            addRangeOption("Last Quarter", "last-quarter");
+
+            menu.addSeparator();
+            menu.addItem((item) => {
+                item.setTitle("Custom Date Range");
+                item.setChecked(this.selectedDaysRange === "custom");
+                item.onClick(() => {
+                    const modal = new CustomRangeModal(this.app, (range) => {
+                        this.customRange = range;
+                        this.setSelectedRange("custom");
+                    });
+                    modal.open();
+                });
+            });
+
+            menu.showAtMouseEvent(e as MouseEvent);
+        });
+
+        this.view = new DailyNoteEditorView({
+            target: this.contentEl,
+            props: {
+                plugin: this.plugin,
+                leaf: this.leaf,
+                selectedRange: this.selectedDaysRange,
+                customRange: this.customRange,
+            },
+        });
         this.app.vault.on("create", this.onFileCreate);
         this.app.vault.on("delete", this.onFileDelete);
         this.app.workspace.onLayoutReady(this.view.tick.bind(this));
 
         // used for triggering when the day change
-        this.registerInterval(window.setInterval(async () => {
-            this.view.check();
-        }, 1000 * 60 * 60));
+        this.registerInterval(
+            window.setInterval(async () => {
+                this.view.check();
+            }, 1000 * 60 * 60)
+        );
+    }
+}
+
+class CustomRangeModal extends Modal {
+    saveCallback: (range: { start: Date; end: Date }) => void;
+    startDate: Date;
+    endDate: Date;
+
+    constructor(
+        app: App,
+        saveCallback: (range: { start: Date; end: Date }) => void
+    ) {
+        super(app);
+        this.saveCallback = saveCallback;
+        this.startDate = new Date();
+        this.endDate = new Date();
+    }
+
+    onOpen() {
+        const { contentEl } = this;
+
+        contentEl.createEl("h2", { text: "Select Custom Date Range" });
+
+        const startDateContainer = contentEl.createEl("div", {
+            cls: "custom-range-date-container",
+        });
+        startDateContainer.createEl("span", { text: "Start Date: " });
+        const startDatePicker = startDateContainer.createEl("input", {
+            type: "date",
+            value: this.formatDate(this.startDate),
+        });
+        startDatePicker.addEventListener("change", (e) => {
+            this.startDate = new Date((e.target as HTMLInputElement).value);
+        });
+
+        const endDateContainer = contentEl.createEl("div", {
+            cls: "custom-range-date-container",
+        });
+        endDateContainer.createEl("span", { text: "End Date: " });
+        const endDatePicker = endDateContainer.createEl("input", {
+            type: "date",
+            value: this.formatDate(this.endDate),
+        });
+        endDatePicker.addEventListener("change", (e) => {
+            this.endDate = new Date((e.target as HTMLInputElement).value);
+        });
+
+        const buttonContainer = contentEl.createEl("div", {
+            cls: "custom-range-button-container",
+        });
+
+        new ButtonComponent(buttonContainer)
+            .setButtonText("Cancel")
+            .onClick(() => {
+                this.close();
+            });
+
+        new ButtonComponent(buttonContainer)
+            .setButtonText("Confirm")
+            .setCta()
+            .onClick(() => {
+                this.saveCallback({
+                    start: this.startDate,
+                    end: this.endDate,
+                });
+                this.close();
+            });
+    }
+
+    formatDate(date: Date): string {
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, "0");
+        const day = String(date.getDate()).padStart(2, "0");
+        return `${year}-${month}-${day}`;
+    }
+
+    onClose() {
+        this.contentEl.empty();
     }
 }
 
@@ -82,37 +245,48 @@ export default class DailyNoteViewPlugin extends Plugin {
         this.patchWorkspaceLeaf();
         addIconList();
 
-        this.registerView(DAILY_NOTE_VIEW_TYPE, (leaf: WorkspaceLeaf) => (this.view = new DailyNoteView(leaf, this)));
+        this.registerView(
+            DAILY_NOTE_VIEW_TYPE,
+            (leaf: WorkspaceLeaf) => (this.view = new DailyNoteView(leaf, this))
+        );
 
-        this.addRibbonIcon('calendar-range', 'Open Daily Note Editor', (evt: MouseEvent) => this.openDailyNoteEditor());
+        this.addRibbonIcon(
+            "calendar-range",
+            "Open Daily Note Editor",
+            (evt: MouseEvent) => this.openDailyNoteEditor()
+        );
         this.addCommand({
-            id: 'open-daily-note-editor',
-            name: 'Open Daily Note Editor',
+            id: "open-daily-note-editor",
+            name: "Open Daily Note Editor",
             callback: () => this.openDailyNoteEditor(),
         });
 
         this.initCssRules();
-
-
     }
 
     onunload() {
         this.app.workspace.detachLeavesOfType(DAILY_NOTE_VIEW_TYPE);
-        document.body.toggleClass('daily-notes-hide-frontmatter', false);
-        document.body.toggleClass('daily-notes-hide-backlinks', false);
+        document.body.toggleClass("daily-notes-hide-frontmatter", false);
+        document.body.toggleClass("daily-notes-hide-backlinks", false);
     }
 
     async openDailyNoteEditor() {
         const workspace = this.app.workspace;
         workspace.detachLeavesOfType(DAILY_NOTE_VIEW_TYPE);
         const leaf = workspace.getLeaf(true);
-        await leaf.setViewState({type: DAILY_NOTE_VIEW_TYPE});
+        await leaf.setViewState({ type: DAILY_NOTE_VIEW_TYPE });
         workspace.revealLeaf(leaf);
     }
 
     initCssRules() {
-        document.body.toggleClass('daily-notes-hide-frontmatter', this.settings.hideFrontmatter);
-        document.body.toggleClass('daily-notes-hide-backlinks', this.settings.hideBacklinks);
+        document.body.toggleClass(
+            "daily-notes-hide-frontmatter",
+            this.settings.hideFrontmatter
+        );
+        document.body.toggleClass(
+            "daily-notes-hide-backlinks",
+            this.settings.hideBacklinks
+        );
     }
 
     patchWorkspace() {
@@ -136,17 +310,28 @@ export default class DailyNoteViewPlugin extends Plugin {
                     if (old.call(this, arg1, arg2)) return true;
 
                     // Handle old/new API parameter swap
-                    const cb: leafIterator = (typeof arg1 === "function" ? arg1 : arg2) as leafIterator;
-                    const parent: WorkspaceItem = (typeof arg1 === "function" ? arg2 : arg1) as WorkspaceItem;
+                    const cb: leafIterator = (
+                        typeof arg1 === "function" ? arg1 : arg2
+                    ) as leafIterator;
+                    const parent: WorkspaceItem = (
+                        typeof arg1 === "function" ? arg2 : arg1
+                    ) as WorkspaceItem;
 
-                    if (!parent) return false;  // <- during app startup, rootSplit can be null
-                    if (layoutChanging) return false;  // Don't let HEs close during workspace change
+                    if (!parent) return false; // <- during app startup, rootSplit can be null
+                    if (layoutChanging) return false; // Don't let HEs close during workspace change
 
                     // 0.14.x doesn't have WorkspaceContainer; this can just be an instanceof check once 15.x is mandatory:
-                    if (parent === app.workspace.rootSplit || (WorkspaceContainer && parent instanceof WorkspaceContainer)) {
-                        for (const popover of DailyNoteEditor.popoversForWindow((parent as WorkspaceContainer).win)) {
+                    if (
+                        parent === app.workspace.rootSplit ||
+                        (WorkspaceContainer &&
+                            parent instanceof WorkspaceContainer)
+                    ) {
+                        for (const popover of DailyNoteEditor.popoversForWindow(
+                            (parent as WorkspaceContainer).win
+                        )) {
                             // Use old API here for compat w/0.14.x
-                            if (old.call(this, cb, popover.rootSplit)) return true;
+                            if (old.call(this, cb, popover.rootSplit))
+                                return true;
                         }
                     }
                     return false;
@@ -156,7 +341,6 @@ export default class DailyNoteViewPlugin extends Plugin {
                 function (e: WorkspaceLeaf, t?: any) {
                     if ((e as any).parentLeaf) {
                         (e as any).parentLeaf.activeTime = 1700000000000;
-
 
                         next.call(this, (e as any).parentLeaf, t);
                         if ((e.view as any).editMode) {
@@ -171,7 +355,7 @@ export default class DailyNoteViewPlugin extends Plugin {
                     // const hoverPopover = DailyNoteEditor.forLeaf(leaf);
                     return old.call(this, event, leaf);
                 };
-            }
+            },
         });
         this.register(uninstaller);
     }
@@ -183,13 +367,16 @@ export default class DailyNoteViewPlugin extends Plugin {
                 getRoot(old) {
                     return function () {
                         const top = old.call(this);
-                        return top?.getRoot === this.getRoot ? top : top?.getRoot();
+                        return top?.getRoot === this.getRoot
+                            ? top
+                            : top?.getRoot();
                     };
                 },
                 setPinned(old) {
                     return function (pinned: boolean) {
                         old.call(this, pinned);
-                        if (isDailyNoteLeaf(this) && !pinned) this.setPinned(true);
+                        if (isDailyNoteLeaf(this) && !pinned)
+                            this.setPinned(true);
                     };
                 },
                 openFile(old) {
@@ -206,32 +393,41 @@ export default class DailyNoteViewPlugin extends Plugin {
                                         };
                                     },
                                 }),
-                                1,
+                                1
                             );
-                            const recentFiles = this.app.plugins.plugins["recent-files-obsidian"];
+                            const recentFiles =
+                                this.app.plugins.plugins[
+                                    "recent-files-obsidian"
+                                ];
                             if (recentFiles)
                                 setTimeout(
                                     around(recentFiles, {
                                         shouldAddFile(old) {
                                             return function (_file: TFile) {
                                                 // Don't update the Recent Files plugin
-                                                return _file !== file && old.call(this, _file);
+                                                return (
+                                                    _file !== file &&
+                                                    old.call(this, _file)
+                                                );
                                             };
                                         },
                                     }),
-                                    1,
+                                    1
                                 );
                         }
                         return old.call(this, file, openState);
                     };
-                }
-            }),
+                },
+            })
         );
     }
 
     public async loadSettings() {
-        this.settings = Object.assign({}, DEFAULT_SETTINGS, await this.loadData());
-
+        this.settings = Object.assign(
+            {},
+            DEFAULT_SETTINGS,
+            await this.loadData()
+        );
     }
 
     async saveSettings() {

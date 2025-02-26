@@ -18,12 +18,15 @@
 
     export let plugin: DailyNoteViewPlugin;
     export let leaf: WorkspaceLeaf;
+    export let selectedRange: "week" | "month" | "year" | "all" | "last-week" | "last-month" | "last-year" | "quarter" | "last-quarter" | "custom" = "all";
+    export let customRange: { start: Date; end: Date } | null = null;
     const size = 1;
     let intervalId;
 
     let cacheDailyNotes: Record<string, any>;
     let allDailyNotes: TFile[] = [];
     let renderedDailyNotes: TFile[] = [];
+    let filteredDailyNotes: TFile[] = [];
 
     let hasMore = true;
     let hasFetch = false;
@@ -40,13 +43,88 @@
         }
         hasFetch = true;
         checkDailyNote();
+        filterNotesByRange();
+    }
+
+    $: if (selectedRange && hasFetch) {
+        filterNotesByRange();
     }
 
     onMount(() => {
         checkDailyNote();
         startFillViewport();
-
     });
+
+    function filterNotesByRange() {
+        const now = moment();
+        const fileFormat = getDailyNoteSettings().format || DEFAULT_DAILY_NOTE_FORMAT;
+        
+        // Reset filtered notes
+        filteredDailyNotes = [];
+        
+        // Filter notes based on selected range
+        if (selectedRange === 'all') {
+            filteredDailyNotes = [...allDailyNotes];
+        } else {
+            filteredDailyNotes = allDailyNotes.filter(file => {
+                const fileDate = moment(file.basename, fileFormat);
+                
+                switch (selectedRange) {
+                    case 'week':
+                        return fileDate.isSame(now, 'week');
+                    case 'month':
+                        return fileDate.isSame(now, 'month');
+                    case 'year':
+                        return fileDate.isSame(now, 'year');
+                    case 'last-week':
+                        return fileDate.isBetween(
+                            moment().subtract(1, 'week').startOf('week'),
+                            moment().subtract(1, 'week').endOf('week'),
+                            null,
+                            '[]'
+                        );
+                    case 'last-month':
+                        return fileDate.isBetween(
+                            moment().subtract(1, 'month').startOf('month'),
+                            moment().subtract(1, 'month').endOf('month'),
+                            null,
+                            '[]'
+                        );
+                    case 'last-year':
+                        return fileDate.isBetween(
+                            moment().subtract(1, 'year').startOf('year'),
+                            moment().subtract(1, 'year').endOf('year'),
+                            null,
+                            '[]'
+                        );
+                    case 'quarter':
+                        return fileDate.isSame(now, 'quarter');
+                    case 'last-quarter':
+                        return fileDate.isBetween(
+                            moment().subtract(1, 'quarter').startOf('quarter'),
+                            moment().subtract(1, 'quarter').endOf('quarter'),
+                            null,
+                            '[]'
+                        );
+                    case 'custom':
+                        if (customRange) {
+                            const startDate = moment(customRange.start);
+                            const endDate = moment(customRange.end);
+                            return fileDate.isBetween(startDate, endDate, null, '[]');
+                        }
+                        return false;
+                    default:
+                        return true;
+                }
+            });
+        }
+        
+        // Reset rendered notes and start filling viewport again
+        renderedDailyNotes = [];
+        hasMore = filteredDailyNotes.length > 0;
+        firstLoaded = true;
+        startFillViewport();
+    }
 
     function checkDailyNote() {
         // @ts-ignore
@@ -83,12 +161,12 @@
 
     function infiniteHandler() {
         if (!hasFetch || !hasMore) return;
-        if (allDailyNotes.length === 0 && hasFetch) {
+        if (filteredDailyNotes.length === 0 && hasFetch) {
             hasMore = false;
         } else {
             renderedDailyNotes = [
                 ...renderedDailyNotes,
-                ...allDailyNotes.splice(0, size)
+                ...filteredDailyNotes.splice(0, size)
             ];
             if (firstLoaded) {
                 window.setTimeout(() => {
@@ -129,6 +207,7 @@
         if (renderedDailyNotes.length === 0) {
             allDailyNotes.push(file);
             allDailyNotes = sortDailyNotes(allDailyNotes);
+            filterNotesByRange();
             return;
         }
 
@@ -143,6 +222,7 @@
         } else if (fileDate.isBefore(lastRenderedDailyNoteDate)) {
             allDailyNotes.push(file);
             allDailyNotes = sortDailyNotes(allDailyNotes);
+            filterNotesByRange();
         } else if (fileDate.isAfter(firstRenderedDailyNoteDate)) {
             renderedDailyNotes.push(file);
             renderedDailyNotes = sortDailyNotes(renderedDailyNotes);
@@ -160,15 +240,27 @@
         allDailyNotes = allDailyNotes.filter((dailyNote) => {
             return dailyNote.basename !== file.basename;
         });
+        filterNotesByRange();
         checkDailyNote();
     }
 </script>
 
 <div class="daily-note-view">
+    <div class="dn-range-indicator">
+        {#if selectedRange !== 'all'}
+            <div class="dn-range-text">
+                {#if selectedRange === 'custom' && customRange}
+                    Showing notes from: {moment(customRange.start).format('YYYY-MM-DD')} to {moment(customRange.end).format('YYYY-MM-DD')}
+                {:else}
+                    Showing notes for: {selectedRange}
+                {/if}
+            </div>
+        {/if}
+    </div>
     {#if renderedDailyNotes.length === 0}
         <div class="dn-stock"></div>
     {/if}
-    {#if !hasCurrentDay}
+    {#if !hasCurrentDay && (selectedRange === 'all' || selectedRange === 'week' || selectedRange === 'month' || selectedRange === 'year' || selectedRange === 'quarter')}
         <div class="dn-blank-day" on:click={createNewDailyNote} aria-hidden="true">
             <div class="dn-blank-day-text">
                 Create a daily note for today ✍
@@ -221,5 +313,19 @@
         margin-left: auto;
         margin-right: auto;
         text-align: center;
+    }
+    
+    .dn-range-indicator {
+        margin-left: auto;
+        margin-right: auto;
+        max-width: var(--file-line-width);
+        padding: 5px 0;
+    }
+    
+    .dn-range-text {
+        font-size: 0.8em;
+        color: var(--color-base-50);
+        text-align: center;
+        font-style: italic;
     }
 </style>

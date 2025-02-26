@@ -49,8 +49,8 @@ importers:
         specifier: ^2.37.0
         version: 2.39.0(eslint@8.57.0)(svelte@4.2.17)
       obsidian:
-        specifier: latest
-        version: 1.5.7-1(@codemirror/state@6.4.1)(@codemirror/view@6.26.3)
+        specifier: ^1.8.7
+        version: 1.8.7(@codemirror/state@6.4.1)(@codemirror/view@6.26.3)
       obsidian-daily-notes-interface:
         specifier: ^0.9.4
         version: 0.9.4(@codemirror/state@6.4.1)(@codemirror/view@6.26.3)
@@ -1084,15 +1084,15 @@ packages:
     resolution: {integrity: sha512-PILoRtZUB5wEeGnDQAPMlkVlXwDYoxkLR8Wl4STU2zLNwhcq9kKvQexiXi7sfjGlpTnL+LeAOfEVWyeVndneKg==}
     hasBin: true
 
-  obsidian@1.5.7-1:
-    resolution: {integrity: sha512-T5ZRuQ1FnfXqEoakTTHVDYvzUEEoT8zSPnQCW31PVgYwG4D4tZCQfKHN2hTz1ifnCe8upvwa6mBTAP2WUA5Vng==}
+  obsidian@1.8.7:
+    resolution: {integrity: sha512-h4bWwNFAGRXlMlMAzdEiIM2ppTGlrh7uGOJS6w4gClrsjc+ei/3YAtU2VdFUlCiPuTHpY4aBpFJJW75S1Tl/JA==}
     peerDependencies:
       '@codemirror/state': ^6.0.0
       '@codemirror/view': ^6.0.0
 
-  obsidian@https://codeload.github.com/obsidianmd/obsidian-api/tar.gz/f20b17e38ccf12a8d7f62231255cb0608436dfbf:
-    resolution: {tarball: https://codeload.github.com/obsidianmd/obsidian-api/tar.gz/f20b17e38ccf12a8d7f62231255cb0608436dfbf}
-    version: 1.6.6
+  obsidian@git+https://git@github.com:obsidianmd/obsidian-api.git#9ab497e64afeac291a2546d2faeded6a7bed626a:
+    resolution: {commit: 9ab497e64afeac291a2546d2faeded6a7bed626a, repo: git@github.com:obsidianmd/obsidian-api.git, type: git}
+    version: 1.8.7
     peerDependencies:
       '@codemirror/state': ^6.0.0
       '@codemirror/view': ^6.0.0
@@ -2402,20 +2402,20 @@ snapshots:
 
   obsidian-daily-notes-interface@0.9.4(@codemirror/state@6.4.1)(@codemirror/view@6.26.3):
     dependencies:
-      obsidian: https://codeload.github.com/obsidianmd/obsidian-api/tar.gz/f20b17e38ccf12a8d7f62231255cb0608436dfbf(@codemirror/state@6.4.1)(@codemirror/view@6.26.3)
+      obsidian: git+https://git@github.com:obsidianmd/obsidian-api.git#9ab497e64afeac291a2546d2faeded6a7bed626a(@codemirror/state@6.4.1)(@codemirror/view@6.26.3)
       tslib: 2.1.0
     transitivePeerDependencies:
       - '@codemirror/state'
       - '@codemirror/view'
 
-  obsidian@1.5.7-1(@codemirror/state@6.4.1)(@codemirror/view@6.26.3):
+  obsidian@1.8.7(@codemirror/state@6.4.1)(@codemirror/view@6.26.3):
     dependencies:
       '@codemirror/state': 6.4.1
       '@codemirror/view': 6.26.3
       '@types/codemirror': 5.60.8
       moment: 2.29.4
 
-  obsidian@https://codeload.github.com/obsidianmd/obsidian-api/tar.gz/f20b17e38ccf12a8d7f62231255cb0608436dfbf(@codemirror/state@6.4.1)(@codemirror/view@6.26.3):
+  obsidian@git+https://git@github.com:obsidianmd/obsidian-api.git#9ab497e64afeac291a2546d2faeded6a7bed626a(@codemirror/state@6.4.1)(@codemirror/view@6.26.3):
     dependencies:
       '@codemirror/state': 6.4.1
       '@codemirror/view': 6.26.3
