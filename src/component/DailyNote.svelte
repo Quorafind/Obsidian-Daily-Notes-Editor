@@ -36,8 +36,9 @@
         createdLeaf.openFile(file, {
             active: false,
             state: {mode: "source", backlinks: !plugin.settings.hideBacklinks,}
-        });
+        })
         createdLeaf.parentLeaf = leaf;
+        
         rendered = true;
     }
 

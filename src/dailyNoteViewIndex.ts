@@ -31,6 +31,7 @@ import {
     getDailyNote,
     createDailyNote,
 } from "obsidian-daily-notes-interface";
+import { createUpDownNavigationExtension } from "./component/UpAndDownNavigate";
 
 export const DAILY_NOTE_VIEW_TYPE = "daily-note-editor-view";
 
@@ -47,7 +48,7 @@ class DailyNoteView extends ItemView {
     selectedDaysRange: TimeRange = "all";
     selectionMode: "daily" | "folder" | "tag" = "daily";
     target: string = "";
-    timeField: TimeField = "mtime"; 
+    timeField: TimeField = "mtime";
 
     customRange: {
         start: Date;
@@ -452,6 +453,11 @@ export default class DailyNoteViewPlugin extends Plugin {
         this.patchWorkspace();
         this.patchWorkspaceLeaf();
         addIconList();
+
+        // Register the up and down navigation extension
+        this.registerEditorExtension([
+            createUpDownNavigationExtension({ app: this.app, plugin: this }),
+        ]);
 
         this.registerView(
             DAILY_NOTE_VIEW_TYPE,

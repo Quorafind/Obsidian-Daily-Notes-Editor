@@ -33,6 +33,41 @@ export class FileManager {
         this.fetchFiles();
     }
 
+    /**
+     * Helper method to parse time field and check if it's reverse
+     * @param timeField The time field to parse
+     * @returns An object containing isReverse flag and baseTimeField
+     */
+    private parseTimeField(timeField: TimeField | undefined): {
+        isReverse: boolean;
+        baseTimeField: string;
+    } {
+        const field = timeField || "mtime";
+        const isReverse = field.endsWith("Reverse");
+        const baseTimeField = isReverse ? field.replace("Reverse", "") : field;
+        return { isReverse, baseTimeField };
+    }
+
+    /**
+     * Helper method to sort files by time field
+     * @param files The files to sort
+     * @param timeField The time field to sort by
+     * @returns Sorted files
+     */
+    private sortFilesByTimeField(
+        files: TFile[],
+        timeField?: TimeField
+    ): TFile[] {
+        const { isReverse, baseTimeField } = this.parseTimeField(timeField);
+
+        return [...files].sort((a, b) => {
+            if (isReverse) {
+                return a.stat[baseTimeField] - b.stat[baseTimeField];
+            }
+            return b.stat[baseTimeField] - a.stat[baseTimeField];
+        });
+    }
+
     public fetchFiles(): void {
         if (this.hasFetched) return;
 
@@ -78,21 +113,11 @@ export class FileManager {
             );
         });
 
-        // Get the time field and check if it's reverse
-        const timeField = this.options.timeField || "mtime";
-        const isReverse = timeField.endsWith("Reverse");
-        const baseTimeField = isReverse
-            ? timeField.replace("Reverse", "")
-            : timeField;
-
         // Sort files by the specified time field
-        this.allFiles = this.allFiles.sort((a, b) => {
-            // If reverse is true, swap a and b to reverse the order
-            if (isReverse) {
-                return a.stat[baseTimeField] - b.stat[baseTimeField];
-            }
-            return b.stat[baseTimeField] - a.stat[baseTimeField];
-        });
+        this.allFiles = this.sortFilesByTimeField(
+            this.allFiles,
+            this.options.timeField
+        );
     }
 
     private fetchTaggedFiles(): void {
@@ -113,21 +138,11 @@ export class FileManager {
             return fileCache.tags.some((tag) => tag.tag === targetTag);
         });
 
-        // Get the time field and check if it's reverse
-        const timeField = this.options.timeField || "mtime";
-        const isReverse = timeField.endsWith("Reverse");
-        const baseTimeField = isReverse
-            ? timeField.replace("Reverse", "")
-            : timeField;
-
         // Sort files by the specified time field
-        this.allFiles = this.allFiles.sort((a, b) => {
-            // If reverse is true, swap a and b to reverse the order
-            if (isReverse) {
-                return a.stat[baseTimeField] - b.stat[baseTimeField];
-            }
-            return b.stat[baseTimeField] - a.stat[baseTimeField];
-        });
+        this.allFiles = this.sortFilesByTimeField(
+            this.allFiles,
+            this.options.timeField
+        );
     }
 
     public filterFilesByRange(): TFile[] {
@@ -164,14 +179,9 @@ export class FileManager {
      */
     private filterFilesByTimeRange(): void {
         const now = moment();
-        const timeField = this.options.timeField || "mtime";
-
-        // Check if it's a reverse time field
-        const isReverse = timeField.endsWith("Reverse");
-        // Extract the base time field (remove "Reverse" suffix if present)
-        const baseTimeField = isReverse
-            ? timeField.replace("Reverse", "")
-            : timeField;
+        const { isReverse, baseTimeField } = this.parseTimeField(
+            this.options.timeField
+        );
 
         // Filter files by creation or modification time
         this.filteredFiles = this.allFiles.filter((file) => {
@@ -365,21 +375,11 @@ export class FileManager {
             // Add the file to the collections
             this.allFiles.push(file);
 
-            // Get the time field and check if it's reverse
-            const timeField = this.options.timeField || "mtime";
-            const isReverse = timeField.endsWith("Reverse");
-            const baseTimeField = isReverse
-                ? timeField.replace("Reverse", "")
-                : timeField;
-
             // Sort files by the specified time field
-            this.allFiles = this.allFiles.sort((a, b) => {
-                // If reverse is true, swap a and b to reverse the order
-                if (isReverse) {
-                    return a.stat[baseTimeField] - b.stat[baseTimeField];
-                }
-                return b.stat[baseTimeField] - a.stat[baseTimeField];
-            });
+            this.allFiles = this.sortFilesByTimeField(
+                this.allFiles,
+                this.options.timeField
+            );
 
             // Update filtered files
             this.filterFilesByRange();
@@ -401,21 +401,11 @@ export class FileManager {
             // Add the file to the collections
             this.allFiles.push(file);
 
-            // Get the time field and check if it's reverse
-            const timeField = this.options.timeField || "mtime";
-            const isReverse = timeField.endsWith("Reverse");
-            const baseTimeField = isReverse
-                ? timeField.replace("Reverse", "")
-                : timeField;
-
             // Sort files by the specified time field
-            this.allFiles = this.allFiles.sort((a, b) => {
-                // If reverse is true, swap a and b to reverse the order
-                if (isReverse) {
-                    return a.stat[baseTimeField] - b.stat[baseTimeField];
-                }
-                return b.stat[baseTimeField] - a.stat[baseTimeField];
-            });
+            this.allFiles = this.sortFilesByTimeField(
+                this.allFiles,
+                this.options.timeField
+            );
 
             // Update filtered files
             this.filterFilesByRange();
