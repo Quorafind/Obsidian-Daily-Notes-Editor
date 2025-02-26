@@ -192,13 +192,15 @@ export default class DailyNoteViewPlugin extends Plugin {
                     if ((e as any).parentLeaf) {
                         (e as any).parentLeaf.activeTime = 1700000000000;
 
-                        next.call(this, (e as any).parentLeaf, t);
-                        if ((e.view as any).editMode) {
-                            this.activeEditor = e.view;
-                        }
-                        return;
+                        const result = next.call(this, (e as any).parentLeaf, t);
+                        setTimeout(() => {
+                            if ((e.view as any).editMode) {
+                                this.activeEditor = e.view;
+                            }
+                        }, 100);
+                        return result;
                     }
-                    next.call(this, e, t);
+                    return next.call(this, e, t);
                 },
             onDragLeaf(old) {
                 return function (event: MouseEvent, leaf: WorkspaceLeaf) {

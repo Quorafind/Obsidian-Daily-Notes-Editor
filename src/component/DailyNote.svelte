@@ -68,7 +68,7 @@
     function handleEditorClick() {
         // @ts-ignore
         const editor = createdLeaf.view.editMode?.editor;
-        if (editor) {
+        if (!editor.hasFocus()) {
             editor.focus();
         }
     }
