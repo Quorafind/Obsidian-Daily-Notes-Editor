@@ -47,7 +47,7 @@ class DailyNoteView extends ItemView {
     selectedDaysRange: TimeRange = "all";
     selectionMode: "daily" | "folder" | "tag" = "daily";
     target: string = "";
-    timeField: TimeField = "mtime"; // 默认使用修改时间
+    timeField: TimeField = "mtime"; 
 
     customRange: {
         start: Date;
@@ -183,6 +183,7 @@ class DailyNoteView extends ItemView {
                 menu.addItem((item) => {
                     item.setTitle(title);
                     item.setChecked(this.timeField === field);
+                    item.setDisabled(this.selectionMode === "daily");
                     item.onClick(() => {
                         this.setTimeField(field);
                     });
@@ -191,6 +192,8 @@ class DailyNoteView extends ItemView {
 
             addTimeFieldOption("Creation Time", "ctime");
             addTimeFieldOption("Modification Time", "mtime");
+            addTimeFieldOption("Creation Time (Reverse)", "ctimeReverse");
+            addTimeFieldOption("Modification Time (Reverse)", "mtimeReverse");
 
             menu.showAtMouseEvent(e);
         });

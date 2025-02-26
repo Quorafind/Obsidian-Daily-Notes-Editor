@@ -199,6 +199,11 @@
 
 
 <style>
+    .dn-range-indicator:empty {
+        display: none;
+    }
+
+
     .dn-stock {
         height: 1000px;
         width: 100%;

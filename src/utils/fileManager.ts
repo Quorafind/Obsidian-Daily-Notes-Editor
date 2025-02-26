@@ -78,9 +78,20 @@ export class FileManager {
             );
         });
 
-        // Sort files by modification time (newest first)
+        // Get the time field and check if it's reverse
+        const timeField = this.options.timeField || "mtime";
+        const isReverse = timeField.endsWith("Reverse");
+        const baseTimeField = isReverse
+            ? timeField.replace("Reverse", "")
+            : timeField;
+
+        // Sort files by the specified time field
         this.allFiles = this.allFiles.sort((a, b) => {
-            return b.stat.mtime - a.stat.mtime;
+            // If reverse is true, swap a and b to reverse the order
+            if (isReverse) {
+                return a.stat[baseTimeField] - b.stat[baseTimeField];
+            }
+            return b.stat[baseTimeField] - a.stat[baseTimeField];
         });
     }
 
@@ -102,9 +113,20 @@ export class FileManager {
             return fileCache.tags.some((tag) => tag.tag === targetTag);
         });
 
-        // Sort files by modification time (newest first)
+        // Get the time field and check if it's reverse
+        const timeField = this.options.timeField || "mtime";
+        const isReverse = timeField.endsWith("Reverse");
+        const baseTimeField = isReverse
+            ? timeField.replace("Reverse", "")
+            : timeField;
+
+        // Sort files by the specified time field
         this.allFiles = this.allFiles.sort((a, b) => {
-            return b.stat.mtime - a.stat.mtime;
+            // If reverse is true, swap a and b to reverse the order
+            if (isReverse) {
+                return a.stat[baseTimeField] - b.stat[baseTimeField];
+            }
+            return b.stat[baseTimeField] - a.stat[baseTimeField];
         });
     }
 
@@ -142,15 +164,27 @@ export class FileManager {
      */
     private filterFilesByTimeRange(): void {
         const now = moment();
-        const timeField = this.options.timeField || "mtime"; // 默认使用修改时间
+        const timeField = this.options.timeField || "mtime";
+
+        // Check if it's a reverse time field
+        const isReverse = timeField.endsWith("Reverse");
+        // Extract the base time field (remove "Reverse" suffix if present)
+        const baseTimeField = isReverse
+            ? timeField.replace("Reverse", "")
+            : timeField;
 
         // Filter files by creation or modification time
         this.filteredFiles = this.allFiles.filter((file) => {
-            // Get the time of the file based on the timeField option
-            const fileDate = moment(file.stat[timeField]);
+            // Get the time of the file based on the base timeField option
+            const fileDate = moment(file.stat[baseTimeField]);
 
             return this.isDateInRange(fileDate, now);
         });
+
+        // If using reverse time field, reverse the order of filtered files
+        if (isReverse) {
+            this.filteredFiles.reverse();
+        }
     }
 
     /**
@@ -331,9 +365,20 @@ export class FileManager {
             // Add the file to the collections
             this.allFiles.push(file);
 
-            // Sort files by modification time (newest first)
+            // Get the time field and check if it's reverse
+            const timeField = this.options.timeField || "mtime";
+            const isReverse = timeField.endsWith("Reverse");
+            const baseTimeField = isReverse
+                ? timeField.replace("Reverse", "")
+                : timeField;
+
+            // Sort files by the specified time field
             this.allFiles = this.allFiles.sort((a, b) => {
-                return b.stat.mtime - a.stat.mtime;
+                // If reverse is true, swap a and b to reverse the order
+                if (isReverse) {
+                    return a.stat[baseTimeField] - b.stat[baseTimeField];
+                }
+                return b.stat[baseTimeField] - a.stat[baseTimeField];
             });
 
             // Update filtered files
@@ -356,9 +401,20 @@ export class FileManager {
             // Add the file to the collections
             this.allFiles.push(file);
 
-            // Sort files by modification time (newest first)
+            // Get the time field and check if it's reverse
+            const timeField = this.options.timeField || "mtime";
+            const isReverse = timeField.endsWith("Reverse");
+            const baseTimeField = isReverse
+                ? timeField.replace("Reverse", "")
+                : timeField;
+
+            // Sort files by the specified time field
             this.allFiles = this.allFiles.sort((a, b) => {
-                return b.stat.mtime - a.stat.mtime;
+                // If reverse is true, swap a and b to reverse the order
+                if (isReverse) {
+                    return a.stat[baseTimeField] - b.stat[baseTimeField];
+                }
+                return b.stat[baseTimeField] - a.stat[baseTimeField];
             });
 
             // Update filtered files
