@@ -42,7 +42,7 @@
         rendered = true;
     }
 
-    function handleClick() {
+    function handleFileIconClick() {
         if (!(file instanceof TFile)) return;
         if (leaf) {
             leaf.openFile(file);
@@ -64,14 +64,22 @@
             showEditor();
         }
     }
+
+    function handleEditorClick() {
+        // @ts-ignore
+        const editor = createdLeaf.view.editMode?.editor;
+        if (editor) {
+            editor.focus();
+        }
+    }
 </script>
 
-<div class="daily-note-container" aria-label='dn-editor-{id}'>
+<div class="daily-note-container" data-id='dn-editor-{id}'>
     <div class="daily-note">
         {#if title}
             <div class="daily-note-title inline-title">
                 {title}
-                <div class="daily-node-icon clickable-icon" on:click={handleClick} aria-hidden="true">
+                <div class="daily-node-icon clickable-icon" on:click={handleFileIconClick} aria-hidden="true">
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
                          stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
                          class="lucide lucide-file-symlink">
@@ -82,7 +90,7 @@
                 </div>
             </div>
         {/if}
-        <div class="daily-note-editor" bind:this={editorEl} aria-label={title}></div>
+        <div class="daily-note-editor"  aria-hidden="true"  bind:this={editorEl} aria-label={title} on:click={handleEditorClick}></div>
     </div>
     <div use:inview={{rootMargin: "20%"}} on:inview_enter={showHandler}/>
 </div>
@@ -96,6 +104,10 @@
         padding-bottom: var(--size-4-5);
     }
 
+    .daily-note-editor {
+        min-height: 100px;
+    }
+
     .daily-note:has(.is-readable-line-width) .daily-note-title {
         max-width: var(--file-line-width);
         margin-left: auto;
@@ -105,7 +117,7 @@
     .daily-note-title {
         display: flex;
         justify-content: space-between;
-        margin-top: var(--size-4-12);
+        margin-top: var(--size-4-8);
     }
 
     .daily-node-icon {
