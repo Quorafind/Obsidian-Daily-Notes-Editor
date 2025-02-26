@@ -8,17 +8,18 @@
     import {
         getAllDailyNotes,
         getDailyNote,
-        createDailyNote,
+        createDailyNote, 
         getDateFromFile,
         getDailyNoteSettings,
         DEFAULT_DAILY_NOTE_FORMAT
     } from 'obsidian-daily-notes-interface';
     import { onMount } from "svelte";
+    import { TimeRange } from "../types/time";
 
 
     export let plugin: DailyNoteViewPlugin;
     export let leaf: WorkspaceLeaf;
-    export let selectedRange: "week" | "month" | "year" | "all" | "last-week" | "last-month" | "last-year" | "quarter" | "last-quarter" | "custom" = "all";
+    export let selectedRange: TimeRange = "all";
     export let customRange: { start: Date; end: Date } | null = null;
     const size = 1;
     let intervalId;

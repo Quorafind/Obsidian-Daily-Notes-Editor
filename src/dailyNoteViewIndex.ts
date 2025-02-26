@@ -13,6 +13,7 @@ import {
     Modal,
     App,
     ButtonComponent,
+    moment,
 } from "obsidian";
 import DailyNoteEditorView from "./component/DailyNoteEditorView.svelte";
 import { around } from "monkey-around";
@@ -25,6 +26,12 @@ import {
     DEFAULT_SETTINGS,
 } from "./dailyNoteSettings";
 import { TimeRange } from "./types/time";
+import {
+    getAllDailyNotes,
+    getDailyNote,
+    createDailyNote,
+} from "obsidian-daily-notes-interface";
+
 export const DAILY_NOTE_VIEW_TYPE = "daily-note-editor-view";
 
 export function isEmebeddedLeaf(leaf: WorkspaceLeaf) {
@@ -262,6 +269,16 @@ export default class DailyNoteViewPlugin extends Plugin {
         });
 
         this.initCssRules();
+
+        // Create daily note and open the Daily Notes Editor on startup if enabled
+        if (this.settings.createAndOpenOnStartup) {
+            this.app.workspace.onLayoutReady(async () => {
+                // First ensure today's daily note exists
+                await this.ensureTodaysDailyNoteExists();
+                // Then open the Daily Notes Editor
+                await this.openDailyNoteEditor();
+            });
+        }
     }
 
     onunload() {
@@ -276,6 +293,20 @@ export default class DailyNoteViewPlugin extends Plugin {
         const leaf = workspace.getLeaf(true);
         await leaf.setViewState({ type: DAILY_NOTE_VIEW_TYPE });
         workspace.revealLeaf(leaf);
+    }
+
+    async ensureTodaysDailyNoteExists() {
+        try {
+            const currentDate = moment();
+            const allDailyNotes = getAllDailyNotes();
+            const currentDailyNote = getDailyNote(currentDate, allDailyNotes);
+
+            if (!currentDailyNote) {
+                await createDailyNote(currentDate);
+            }
+        } catch (error) {
+            console.error("Failed to create daily note:", error);
+        }
     }
 
     initCssRules() {

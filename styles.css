@@ -98,10 +98,36 @@
     overflow-x: hidden;
 }
 
-body.daily-notes-hide-frontmatter .daily-note-view .markdown-source-view.is-live-preview.show-properties .metadata-container {
+body.daily-notes-hide-frontmatter
+    .daily-note-view
+    .markdown-source-view.is-live-preview.show-properties
+    .metadata-container {
     display: none;
 }
 
 body.daily-notes-hide-backlinks .daily-note-view .embedded-backlinks {
     display: none;
+}
+
+/* Custom Range Modal Styles */
+.custom-range-date-container {
+    margin-bottom: var(--size-4-2);
+    display: flex;
+    align-items: center;
+}
+
+.custom-range-date-container span {
+    width: 100px;
+    display: inline-block;
+}
+
+.custom-range-date-container input {
+    flex: 1;
+}
+
+.custom-range-button-container {
+    display: flex;
+    justify-content: flex-end;
+    gap: var(--size-4-2);
+    margin-top: var(--size-4-4);
 }
