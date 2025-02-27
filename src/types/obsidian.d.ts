@@ -1,4 +1,4 @@
-import 'obsidian';
+import "obsidian";
 import { Plugin, SuggestModal, TFile, View, WorkspaceLeaf } from "obsidian";
 
 interface InternalPlugins {
@@ -57,7 +57,9 @@ declare module "obsidian" {
     interface App {
         internalPlugins: {
             plugins: InternalPlugins;
-            getPluginById<T extends keyof InternalPlugins>(id: T): InternalPlugins[T];
+            getPluginById<T extends keyof InternalPlugins>(
+                id: T
+            ): InternalPlugins[T];
         };
         plugins: {
             manifests: Record<string, PluginManifest>;
@@ -85,9 +87,17 @@ declare module "obsidian" {
     }
 
     interface WorkspaceParent {
-        insertChild(index: number, child: WorkspaceItem, resize?: boolean): void;
+        insertChild(
+            index: number,
+            child: WorkspaceItem,
+            resize?: boolean
+        ): void;
 
-        replaceChild(index: number, child: WorkspaceItem, resize?: boolean): void;
+        replaceChild(
+            index: number,
+            child: WorkspaceItem,
+            resize?: boolean
+        ): void;
 
         removeChild(leaf: WorkspaceLeaf, resize?: boolean): void;
 
@@ -99,11 +109,19 @@ declare module "obsidian" {
     }
 
     class MarkdownPreviewRendererStatic extends MarkdownPreviewRenderer {
-        static registerDomEvents(el: HTMLElement, handlerInstance: unknown, cb: (el: HTMLElement) => unknown): void;
+        static registerDomEvents(
+            el: HTMLElement,
+            handlerInstance: unknown,
+            cb: (el: HTMLElement) => unknown
+        ): void;
     }
 
     interface WorkspaceLeaf {
-        openLinkText(linkText: string, path: string, state?: unknown): Promise<void>;
+        openLinkText(
+            linkText: string,
+            path: string,
+            state?: unknown
+        ): Promise<void>;
 
         updateHeader(): void;
 
@@ -111,27 +129,38 @@ declare module "obsidian" {
         working: boolean;
         parentSplit: WorkspaceParent;
         parentLeaf: WorkspaceLeaf;
+
+        height: number;
     }
 
     interface Workspace {
         recordHistory(leaf: WorkspaceLeaf, pushHistory: boolean): void;
 
-        iterateLeaves(callback: (item: WorkspaceLeaf) => boolean | void, item: WorkspaceItem | WorkspaceItem[]): boolean;
+        iterateLeaves(
+            callback: (item: WorkspaceLeaf) => boolean | void,
+            item: WorkspaceItem | WorkspaceItem[]
+        ): boolean;
 
-        iterateLeaves(item: WorkspaceItem | WorkspaceItem[], callback: (item: WorkspaceLeaf) => boolean | void): boolean;
+        iterateLeaves(
+            item: WorkspaceItem | WorkspaceItem[],
+            callback: (item: WorkspaceLeaf) => boolean | void
+        ): boolean;
 
         getDropLocation(event: MouseEvent): {
             target: WorkspaceItem;
             sidedock: boolean;
         };
 
-        recursiveGetTarget(event: MouseEvent, parent: WorkspaceParent): WorkspaceItem;
+        recursiveGetTarget(
+            event: MouseEvent,
+            parent: WorkspaceParent
+        ): WorkspaceItem;
 
         recordMostRecentOpenedFile(file: TFile): void;
 
         onDragLeaf(event: MouseEvent, leaf: WorkspaceLeaf): void;
 
-        onLayoutChange(): void;  // tell Obsidian leaves have been added/removed/etc.
+        onLayoutChange(): void; // tell Obsidian leaves have been added/removed/etc.
         activeLeafEvents(): void;
     }
 
@@ -158,6 +187,7 @@ declare module "obsidian" {
 
         headerEl: HTMLElement;
         contentEl: HTMLElement;
+        titleEl: HTMLElement;
     }
 
     interface EmptyView extends View {
@@ -166,7 +196,10 @@ declare module "obsidian" {
     }
 
     interface FileManager {
-        createNewMarkdownFile(folder: TFolder, fileName: string): Promise<TFile>;
+        createNewMarkdownFile(
+            folder: TFolder,
+            fileName: string
+        ): Promise<TFile>;
     }
 
     enum PopoverState {

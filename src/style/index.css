@@ -42,8 +42,7 @@
     padding: 0 !important;
     overflow-y: clip;
 }
-
-.daily-note-view .daily-note-container::before {
+.daily-note-view .daily-note-wrapper::before {
     content: "";
     display: block;
     height: 1px;
@@ -51,10 +50,14 @@
     margin-bottom: 30px;
     margin-left: auto;
     margin-right: auto;
-    background-color: var(--color-base-25);
+    background-color: var(--background-modifier-border);
 }
 
-.daily-note-view .daily-note-container:first-child::before {
+.daily-note-view .daily-note-wrapper:first-of-type::before {
+    height: 0px;
+}
+
+.daily-note-view .dn-range-indicator + .daily-note-container::before {
     height: 0px;
 }
 
@@ -98,10 +101,115 @@
     overflow-x: hidden;
 }
 
-body.daily-notes-hide-frontmatter .daily-note-view .markdown-source-view.is-live-preview.show-properties .metadata-container {
+body.daily-notes-hide-frontmatter
+    .daily-note-view
+    .markdown-source-view.is-live-preview.show-properties
+    .metadata-container {
     display: none;
 }
 
 body.daily-notes-hide-backlinks .daily-note-view .embedded-backlinks {
     display: none;
+}
+
+/* Custom Range Modal Styles */
+.custom-range-date-container {
+    margin-bottom: var(--size-4-2);
+    display: flex;
+    align-items: center;
+}
+
+.custom-range-date-container span {
+    width: 100px;
+    display: inline-block;
+}
+
+.custom-range-date-container input {
+    flex: 1;
+}
+
+.custom-range-button-container {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: var(--size-4-4);
+    gap: var(--size-4-2);
+}
+
+/* Preset management styles */
+.preset-container {
+    margin-bottom: var(--size-4-4);
+}
+
+.no-presets-message {
+    color: var(--text-muted);
+    font-style: italic;
+    margin: var(--size-4-2) 0;
+}
+
+.preset-list {
+    display: flex;
+    flex-direction: column;
+    gap: var(--size-4-2);
+    margin: var(--size-4-2) 0;
+}
+
+.preset-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: var(--size-2-4) var(--size-4-3);
+    background-color: var(--background-secondary);
+    border-radius: var(--radius-s);
+}
+
+.preset-info {
+    display: flex;
+    align-items: center;
+}
+
+.preset-type {
+    font-weight: bold;
+    margin-right: var(--size-2-2);
+}
+
+.preset-actions {
+    display: flex;
+    gap: var(--size-4-2);
+}
+
+.preset-action-button {
+    padding: var(--size-2-2) var(--size-2-4);
+    border-radius: var(--radius-s);
+    font-size: var(--font-ui-small);
+    cursor: pointer;
+}
+
+.preset-open-button {
+    background-color: var(--interactive-accent);
+    color: var(--text-on-accent);
+}
+
+.preset-delete-button {
+    background-color: var(--background-modifier-error);
+    color: var(--text-on-accent);
+}
+
+/* Add preset modal styles */
+.setting-item {
+    margin-bottom: var(--size-4-4);
+}
+
+.target-input {
+    width: 100%;
+    padding: var(--size-2-3);
+    border-radius: var(--radius-s);
+    border: 1px solid var(--background-modifier-border);
+    background-color: var(--background-primary);
+}
+
+.modal-button-container {
+    display: flex;
+    justify-content: flex-end;
+    gap: var(--size-4-2);
+    margin-top: var(--size-4-4);
 }

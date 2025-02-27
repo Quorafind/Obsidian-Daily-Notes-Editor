@@ -68,6 +68,7 @@ export class DailyNoteEditor extends nosuper(HoverPopover) {
     detaching = false;
     opening = false;
 
+    // @ts-ignore
     rootSplit: WorkspaceSplit = new (WorkspaceSplit as ConstructableWorkspaceSplit)(window.app.workspace, "vertical");
     isPinned = true;
 
@@ -90,6 +91,7 @@ export class DailyNoteEditor extends nosuper(HoverPopover) {
 
     static activeWindows() {
         const windows: Window[] = [window];
+        // @ts-ignore
         const {floatingSplit} = app.workspace;
         if (floatingSplit) {
             for (const split of floatingSplit.children) {
@@ -218,7 +220,7 @@ export class DailyNoteEditor extends nosuper(HoverPopover) {
         if (this.shouldShow()) {
             if (this.state === PopoverState.Hiding) {
                 this.state = PopoverState.Shown;
-                clearTimeout(this.timer);
+                window.clearTimeout(this.timer);
             }
         } else {
             if (this.state === PopoverState.Showing) {
@@ -261,7 +263,7 @@ export class DailyNoteEditor extends nosuper(HoverPopover) {
     onload(): void {
         super.onload();
         this.registerEvent(this.plugin.app.workspace.on("layout-change", this.updateLeaves, this));
-        this.registerEvent(app.workspace.on("layout-change", () => {
+        this.registerEvent(this.plugin.app.workspace.on("layout-change", () => {
             // Ensure that top-level items in a popover are not tabbed
             // @ts-ignore
             this.rootSplit.children.forEach((item: any, index: any) => {
@@ -351,7 +353,7 @@ export class DailyNoteEditor extends nosuper(HoverPopover) {
             this.timer = 0;
             this.targetEl.appendChild(this.hoverEl);
             this.onShow();
-            app.workspace.onLayoutChange();
+            this.plugin.app.workspace.onLayoutChange();
             // initializingHoverPopovers.remove(this);
             // activeHoverPopovers.push(this);
             // initializePopoverChecker();
@@ -388,7 +390,7 @@ export class DailyNoteEditor extends nosuper(HoverPopover) {
         // A timer might be pending to call show() for the first time, make sure
         // it doesn't bring us back up after we close
         if (this.timer) {
-            clearTimeout(this.timer);
+            window.clearTimeout(this.timer);
             this.timer = 0;
         }
 
@@ -462,7 +464,7 @@ export class DailyNoteEditor extends nosuper(HoverPopover) {
         eState = Object.assign(this.buildEphemeralState(file, link), eState);
         const parentMode = this.getDefaultMode();
         const state = this.buildState(parentMode, eState);
-        const leaf = await this.openFile(file, state, createInLeaf);
+        const leaf = await this.openFile(file, state as OpenViewState, createInLeaf);
         const leafViewType = leaf?.view?.getViewType();
         // console.log(leaf);
         if (leafViewType === "image") {
