@@ -7,6 +7,7 @@ import {
     WorkspaceItem,
     WorkspaceLeaf,
     moment,
+    requireApiVersion,
 } from "obsidian";
 
 import { around } from "monkey-around";
@@ -89,8 +90,6 @@ export default class DailyNoteViewPlugin extends Plugin {
 
     async openDailyNoteEditor() {
         const workspace = this.app.workspace;
-
-        workspace.detachLeavesOfType(DAILY_NOTE_VIEW_TYPE);
         const leaf = workspace.getLeaf(true);
         await leaf.setViewState({ type: DAILY_NOTE_VIEW_TYPE });
         workspace.revealLeaf(leaf);
@@ -157,7 +156,13 @@ export default class DailyNoteViewPlugin extends Plugin {
                         if (t?.VIEW_TYPE === "markdown") {
                             const activeLeaf = this.activeLeaf;
                             if (activeLeaf?.view instanceof DailyNoteView) {
+                                console.log(
+                                    "getActiveViewOfType",
+                                    activeLeaf.view.editMode
+                                );
                                 return activeLeaf.view.editMode;
+                            } else {
+                                return result;
                             }
                         }
                     }
@@ -192,17 +197,19 @@ export default class DailyNoteViewPlugin extends Plugin {
                     if (layoutChanging) return false; // Don't let HEs close during workspace change
 
                     // 0.14.x doesn't have WorkspaceContainer; this can just be an instanceof check once 15.x is mandatory:
-                    if (
-                        parent === this.app.workspace.rootSplit ||
-                        (WorkspaceContainer &&
-                            parent instanceof WorkspaceContainer)
-                    ) {
-                        for (const popover of DailyNoteEditor.popoversForWindow(
-                            (parent as WorkspaceContainer).win
-                        )) {
-                            // Use old API here for compat w/0.14.x
-                            if (old.call(this, cb, popover.rootSplit))
-                                return true;
+                    if (!requireApiVersion("0.15.0")) {
+                        if (
+                            parent === this.app.workspace.rootSplit ||
+                            (WorkspaceContainer &&
+                                parent instanceof WorkspaceContainer)
+                        ) {
+                            for (const popover of DailyNoteEditor.popoversForWindow(
+                                (parent as WorkspaceContainer).win
+                            )) {
+                                // Use old API here for compat w/0.14.x
+                                if (old.call(this, cb, popover.rootSplit))
+                                    return true;
+                            }
                         }
                     }
                     return false;
@@ -211,27 +218,18 @@ export default class DailyNoteViewPlugin extends Plugin {
             setActiveLeaf: (next: any) =>
                 function (e: WorkspaceLeaf, t?: any) {
                     if ((e as any).parentLeaf) {
+                        console.log("setActiveLeaf", e, t);
                         (e as any).parentLeaf.activeTime = 1700000000000;
 
-                        const result = next.call(
-                            this,
-                            (e as any).parentLeaf,
-                            t
-                        );
+                        next.call(this, (e as any).parentLeaf, t);
                         if ((e.view as any).editMode) {
                             this.activeEditor = e.view;
                             (e as any).parentLeaf.view.editMode = e.view;
                         }
-                        return result;
+                        return;
                     }
                     return next.call(this, e, t);
                 },
-            onDragLeaf(old) {
-                return function (event: MouseEvent, leaf: WorkspaceLeaf) {
-                    // const hoverPopover = DailyNoteEditor.forLeaf(leaf);
-                    return old.call(this, event, leaf);
-                };
-            },
         });
         this.register(uninstaller);
     }
@@ -291,6 +289,7 @@ export default class DailyNoteViewPlugin extends Plugin {
                                     1
                                 );
                         }
+                        console.log("openFile", file, openState, this);
                         return old.call(this, file, openState);
                     };
                 },

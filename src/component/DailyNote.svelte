@@ -33,10 +33,24 @@
         [createdLeaf] = spawnLeafView(plugin, editorEl, leaf);
         createdLeaf.setPinned(true);
 
-        createdLeaf.openFile(file, {
-            active: false,
-            state: {mode: "source", backlinks: !plugin.settings.hideBacklinks,}
-        })
+        createdLeaf.setViewState({
+            type: "markdown",
+            state: {
+                file: file.path,
+                mode: "source",
+                source: false,
+                backlinks: !plugin.settings.hideBacklinks,
+                backlinkOpts: {
+                    collapseAll: false,
+                    extraContext: false,
+                    sortOrder: "alphabetical",
+                    showSearch: false,
+                    searchQuery: "",
+                    backlinkCollapsed: false,
+                    unlinkedCollapsed: true
+                }
+            }
+        });
         createdLeaf.parentLeaf = leaf;
 
         rendered = true;
