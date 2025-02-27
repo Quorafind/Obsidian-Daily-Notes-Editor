@@ -122,7 +122,7 @@
             if (!shouldRender && rendered) {
                 unloadEditor();
             }
-        }, 1000); // 1 second delay before unloading
+        }, 1000);
     }
     
     // Unload the editor to free up resources
@@ -220,6 +220,22 @@
 
     .daily-note-editor[data-collapsed="true"] {
         display: none;
+    }
+
+    .daily-note .collapse-button {
+        display: none;
+    }
+
+    .daily-note:hover .collapse-button {
+        display: block;
+    }
+
+    .daily-note .collapse-button {
+        color: var(--text-muted);
+    }
+
+    .daily-note .collapse-button:hover  {
+        color: var(--text-normal);
     }
 
     .daily-note:has(.is-readable-line-width) .daily-note-title {

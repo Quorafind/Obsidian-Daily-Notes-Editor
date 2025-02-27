@@ -42,7 +42,7 @@
     padding: 0 !important;
     overflow-y: clip;
 }
-.daily-note-view .daily-note-container::before {
+.daily-note-view .daily-note-wrapper::before {
     content: "";
     display: block;
     height: 1px;
@@ -53,7 +53,7 @@
     background-color: var(--background-modifier-border);
 }
 
-.daily-note-view .daily-note-container:first-of-type::before {
+.daily-note-view .daily-note-wrapper:first-of-type::before {
     height: 0px;
 }
 
