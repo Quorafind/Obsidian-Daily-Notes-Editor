@@ -42,6 +42,10 @@ export class DailyNoteView extends ItemView {
         this.scope = new Scope(plugin.app.scope);
     }
 
+    getMode = () => {
+        return "source";
+    };
+
     getViewType(): string {
         return DAILY_NOTE_VIEW_TYPE;
     }
@@ -117,6 +121,64 @@ export class DailyNoteView extends ItemView {
                 });
                 this.plugin.saveSettings();
             }
+        }
+    }
+
+    getState(): Record<string, unknown> {
+        const state = super.getState();
+
+        return {
+            ...state,
+            selectionMode: this.selectionMode,
+            target: this.target,
+            timeField: this.timeField,
+            selectedRange: this.selectedDaysRange,
+            customRange: this.customRange,
+        };
+    }
+
+    async setState(state: unknown, result?: any): Promise<void> {
+        await super.setState(state, result);
+        console.log("setState", state, this.view);
+        // Handle our custom state properties if they exist
+        if (state && typeof state === "object" && !this.view) {
+            const customState = state as {
+                selectionMode?: "daily" | "folder" | "tag";
+                target?: string;
+                timeField?: TimeField;
+                selectedRange?: TimeRange;
+                customRange?: { start: Date; end: Date } | null;
+            };
+
+            if (customState.selectionMode)
+                this.selectionMode = customState.selectionMode;
+            if (customState.target) this.target = customState.target;
+            if (customState.timeField) this.timeField = customState.timeField;
+            if (customState.selectedRange)
+                this.selectedDaysRange = customState.selectedRange;
+            if (customState.customRange)
+                this.customRange = customState.customRange;
+
+            this.view = new DailyNoteEditorView({
+                target: this.contentEl,
+                props: {
+                    plugin: this.plugin,
+                    leaf: this.leaf,
+                    selectedRange: this.selectedDaysRange,
+                    customRange: this.customRange,
+                    selectionMode: this.selectionMode,
+                    target: this.target,
+                    timeField: this.timeField,
+                },
+            });
+
+            this.app.workspace.onLayoutReady(this.view.tick.bind(this));
+
+            this.registerInterval(
+                window.setInterval(async () => {
+                    this.view.check();
+                }, 1000 * 60 * 60)
+            );
         }
     }
 
@@ -278,28 +340,8 @@ export class DailyNoteView extends ItemView {
             menu.showAtMouseEvent(e as MouseEvent);
         });
 
-        this.view = new DailyNoteEditorView({
-            target: this.contentEl,
-            props: {
-                plugin: this.plugin,
-                leaf: this.leaf,
-                selectedRange: this.selectedDaysRange,
-                customRange: this.customRange,
-                selectionMode: this.selectionMode,
-                target: this.target,
-                timeField: this.timeField,
-            },
-        });
         this.app.vault.on("create", this.onFileCreate);
         this.app.vault.on("delete", this.onFileDelete);
-        this.app.workspace.onLayoutReady(this.view.tick.bind(this));
-
-        // used for triggering when the day change
-        this.registerInterval(
-            window.setInterval(async () => {
-                this.view.check();
-            }, 1000 * 60 * 60)
-        );
     }
 
     onPaneMenu(

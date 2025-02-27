@@ -20,9 +20,7 @@ export const setActiveEditorExt = (app: App) => {
                 lastFocusState = true;
 
                 // Get the editor info from the state using type assertion to handle version mismatches
-                const editorInfo = view.state.field(editorInfoField as any)
-
-                console.log(editorInfo);
+                const editorInfo = view.state.field(editorInfoField as any);
 
                 // Update the active editor in the app
                 if (editorInfo) {

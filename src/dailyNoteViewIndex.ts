@@ -25,6 +25,7 @@ import {
     createDailyNote,
 } from "obsidian-daily-notes-interface";
 import { createUpDownNavigationExtension } from "./component/UpAndDownNavigate";
+// import { setActiveEditorExt } from "./component/SetActiveEditor";
 import { DAILY_NOTE_VIEW_TYPE, DailyNoteView } from "./dailyNoteView";
 
 export default class DailyNoteViewPlugin extends Plugin {
@@ -43,6 +44,7 @@ export default class DailyNoteViewPlugin extends Plugin {
         // Register the up and down navigation extension
         this.registerEditorExtension([
             createUpDownNavigationExtension({ app: this.app, plugin: this }),
+            // setActiveEditorExt({ app: this.app, plugin: this }),
         ]);
 
         this.registerView(
@@ -68,6 +70,11 @@ export default class DailyNoteViewPlugin extends Plugin {
             this.app.workspace.onLayoutReady(async () => {
                 // First ensure today's daily note exists
                 await this.ensureTodaysDailyNoteExists();
+                if (
+                    this.app.workspace.getLeavesOfType(DAILY_NOTE_VIEW_TYPE)
+                        .length > 0
+                )
+                    return;
                 // Then open the Daily Notes Editor
                 await this.openDailyNoteEditor();
             });
@@ -82,6 +89,7 @@ export default class DailyNoteViewPlugin extends Plugin {
 
     async openDailyNoteEditor() {
         const workspace = this.app.workspace;
+
         workspace.detachLeavesOfType(DAILY_NOTE_VIEW_TYPE);
         const leaf = workspace.getLeaf(true);
         await leaf.setViewState({ type: DAILY_NOTE_VIEW_TYPE });
@@ -142,6 +150,19 @@ export default class DailyNoteViewPlugin extends Plugin {
     patchWorkspace() {
         let layoutChanging = false;
         const uninstaller = around(Workspace.prototype, {
+            getActiveViewOfType: (next: any) =>
+                function (t: any) {
+                    const result = next.call(this, t);
+                    if (!result) {
+                        if (t?.VIEW_TYPE === "markdown") {
+                            const activeLeaf = this.activeLeaf;
+                            if (activeLeaf?.view instanceof DailyNoteView) {
+                                return activeLeaf.view;
+                            }
+                        }
+                    }
+                    return result;
+                },
             changeLayout(old) {
                 return async function (workspace: unknown) {
                     layoutChanging = true;
@@ -192,12 +213,15 @@ export default class DailyNoteViewPlugin extends Plugin {
                     if ((e as any).parentLeaf) {
                         (e as any).parentLeaf.activeTime = 1700000000000;
 
-                        const result = next.call(this, (e as any).parentLeaf, t);
-                        setTimeout(() => {
-                            if ((e.view as any).editMode) {
-                                this.activeEditor = e.view;
-                            }
-                        }, 100);
+                        const result = next.call(
+                            this,
+                            (e as any).parentLeaf,
+                            t
+                        );
+                        if ((e.view as any).editMode) {
+                            this.activeEditor = e.view;
+                            (e as any).parentLeaf.view.editMode = e.view;
+                        }
                         return result;
                     }
                     return next.call(this, e, t);

@@ -38,7 +38,7 @@
             state: {mode: "source", backlinks: !plugin.settings.hideBacklinks,}
         })
         createdLeaf.parentLeaf = leaf;
-        
+
         rendered = true;
     }
 
