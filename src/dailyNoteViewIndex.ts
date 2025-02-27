@@ -156,10 +156,6 @@ export default class DailyNoteViewPlugin extends Plugin {
                         if (t?.VIEW_TYPE === "markdown") {
                             const activeLeaf = this.activeLeaf;
                             if (activeLeaf?.view instanceof DailyNoteView) {
-                                console.log(
-                                    "getActiveViewOfType",
-                                    activeLeaf.view.editMode
-                                );
                                 return activeLeaf.view.editMode;
                             } else {
                                 return result;
@@ -218,7 +214,6 @@ export default class DailyNoteViewPlugin extends Plugin {
             setActiveLeaf: (next: any) =>
                 function (e: WorkspaceLeaf, t?: any) {
                     if ((e as any).parentLeaf) {
-                        console.log("setActiveLeaf", e, t);
                         (e as any).parentLeaf.activeTime = 1700000000000;
 
                         next.call(this, (e as any).parentLeaf, t);
@@ -289,7 +284,6 @@ export default class DailyNoteViewPlugin extends Plugin {
                                     1
                                 );
                         }
-                        console.log("openFile", file, openState, this);
                         return old.call(this, file, openState);
                     };
                 },
