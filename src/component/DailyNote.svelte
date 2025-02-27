@@ -117,14 +117,18 @@
 
     .daily-note:has(.is-readable-line-width) .daily-note-title {
         max-width: calc(var(--file-line-width) + var(--size-4-4));
+        width: calc(var(--file-line-width) + var(--size-4-4));
         margin-left: auto;
         margin-right: auto;
         margin-bottom: var(--size-4-8);
     }
 
-    .daily-note-title {
+    .daily-note:not(:has(.is-readable-line-width)) .daily-note-title {
         display: flex;
-        justify-content: space-between;
+        justify-content: start;
+        width: 100%;
+        padding-left: calc(calc(100% - var(--file-line-width)) / 2 - var(--size-4-2));
+        padding-right: calc(calc(100% - var(--file-line-width)) / 2 - var(--size-4-2));
         margin-top: var(--size-4-8);
     }
 

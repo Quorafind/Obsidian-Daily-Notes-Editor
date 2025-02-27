@@ -8,6 +8,7 @@ import {
     WorkspaceLeaf,
     moment,
     requireApiVersion,
+    TFolder,
 } from "obsidian";
 
 import { around } from "monkey-around";
@@ -80,6 +81,18 @@ export default class DailyNoteViewPlugin extends Plugin {
                 await this.openDailyNoteEditor();
             });
         }
+
+        this.app.workspace.on("file-menu", (menu, file, source, leaf) => {
+            if (file instanceof TFolder) {
+                menu.addItem((item) => {
+                    item.setIcon("calendar-range");
+                    item.setTitle("Open daily notes for this folder");
+                    item.onClick(() => {
+                        this.openFolderView(file.path);
+                    });
+                });
+            }
+        });
     }
 
     onunload() {

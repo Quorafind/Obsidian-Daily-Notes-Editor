@@ -124,6 +124,7 @@
     }
 
     function infiniteHandler() {
+        console.log("infiniteHandler");
         if (!fileManager || !hasMore) return;
         if (filteredFiles.length === 0) {
             hasMore = false;
@@ -191,7 +192,11 @@
 
 <div class="daily-note-view">
     {#if renderedFiles.length === 0}
-        <div class="dn-stock"></div>
+        <div class="dn-stock">
+            <div class="dn-stock-text">
+                No files found
+            </div>
+        </div>
     {/if}
     {#if selectionMode === "daily" && !fileManager?.hasCurrentDayNote() && (selectedRange === 'all' || selectedRange === 'week' || selectedRange === 'month' || selectedRange === 'year' || selectedRange === 'quarter')}
         <div class="dn-blank-day" on:click={createNewDailyNote} aria-hidden="true">
@@ -217,6 +222,14 @@
     .dn-stock {
         height: 1000px;
         width: 100%;
+
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+
+    .dn-stock-text {
+        text-align: center;
     }
 
     .no-more-text {
