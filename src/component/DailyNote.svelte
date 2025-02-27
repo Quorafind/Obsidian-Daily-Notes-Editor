@@ -78,19 +78,10 @@
     <div class="daily-note">
         {#if title}
             <div class="daily-note-title inline-title">
-                {title}
-                <div class="daily-node-icon clickable-icon" on:click={handleFileIconClick} aria-hidden="true">
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
-                         stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
-                         class="lucide lucide-file-symlink">
-                        <path d="m10 18 3-3-3-3"/>
-                        <path d="M14 2v4a2 2 0 0 0 2 2h4"/>
-                        <path d="M4 11V4a2 2 0 0 1 2-2h9l5 5v13a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h7"/>
-                    </svg>
-                </div>
+                <span role="link" class="clickable-link" on:click={handleFileIconClick}>{title}</span>
             </div>
         {/if}
-        <div class="daily-note-editor"  aria-hidden="true"  bind:this={editorEl} aria-label={title} on:click={handleEditorClick}></div>
+        <div class="daily-note-editor"  aria-hidden="true"  bind:this={editorEl} data-title={title} on:click={handleEditorClick}></div>
     </div>
     <div use:inview={{rootMargin: "20%"}} on:inview_enter={showHandler}/>
 </div>
@@ -101,7 +92,7 @@
 <style>
     .daily-note {
         margin-bottom: var(--size-4-5);
-        padding-bottom: var(--size-4-5);
+        padding-bottom: var(--size-4-8);
     }
 
     .daily-note-editor {
@@ -109,9 +100,10 @@
     }
 
     .daily-note:has(.is-readable-line-width) .daily-note-title {
-        max-width: var(--file-line-width);
+        max-width: calc(var(--file-line-width) + var(--size-4-4));
         margin-left: auto;
         margin-right: auto;
+        margin-bottom: var(--size-4-8);
     }
 
     .daily-note-title {
@@ -120,13 +112,13 @@
         margin-top: var(--size-4-8);
     }
 
-    .daily-node-icon {
-        width: var(--size-4-8);
-        height: var(--size-4-8);
+    .clickable-link {
         cursor: pointer;
+        text-decoration: none;
     }
 
-    .daily-node-icon:hover {
-        background-color: var(--background-modifier-hover);
+    .clickable-link:hover {
+        color: var(--color-accent);
+        text-decoration: underline;
     }
 </style>
