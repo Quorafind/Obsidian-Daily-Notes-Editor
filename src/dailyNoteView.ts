@@ -139,7 +139,6 @@ export class DailyNoteView extends ItemView {
 
     async setState(state: unknown, result?: any): Promise<void> {
         await super.setState(state, result);
-        console.log("setState", state, this.view);
         // Handle our custom state properties if they exist
         if (state && typeof state === "object" && !this.view) {
             const customState = state as {
@@ -196,6 +195,29 @@ export class DailyNoteView extends ItemView {
     async onOpen(): Promise<void> {
         this.scope.register(["Mod"], "f", (e) => {
             // do-nothing
+        });
+
+        this.addAction("clock", "Select time field", (e) => {
+            const menu = new Menu();
+
+            // Add time field selection options
+            const addTimeFieldOption = (title: string, field: TimeField) => {
+                menu.addItem((item) => {
+                    item.setTitle(title);
+                    item.setChecked(this.timeField === field);
+                    item.setDisabled(this.selectionMode === "daily");
+                    item.onClick(() => {
+                        this.setTimeField(field);
+                    });
+                });
+            };
+
+            addTimeFieldOption("Creation Time", "ctime");
+            addTimeFieldOption("Modification Time", "mtime");
+            addTimeFieldOption("Creation Time (Reverse)", "ctimeReverse");
+            addTimeFieldOption("Modification Time (Reverse)", "mtimeReverse");
+
+            menu.showAtMouseEvent(e);
         });
 
         // Add action for selecting view mode
@@ -278,28 +300,6 @@ export class DailyNoteView extends ItemView {
         // });
 
         // Add action for selecting time field (for folder and tag modes)
-        this.addAction("clock", "Select time field", (e) => {
-            const menu = new Menu();
-
-            // Add time field selection options
-            const addTimeFieldOption = (title: string, field: TimeField) => {
-                menu.addItem((item) => {
-                    item.setTitle(title);
-                    item.setChecked(this.timeField === field);
-                    item.setDisabled(this.selectionMode === "daily");
-                    item.onClick(() => {
-                        this.setTimeField(field);
-                    });
-                });
-            };
-
-            addTimeFieldOption("Creation Time", "ctime");
-            addTimeFieldOption("Modification Time", "mtime");
-            addTimeFieldOption("Creation Time (Reverse)", "ctimeReverse");
-            addTimeFieldOption("Modification Time (Reverse)", "mtimeReverse");
-
-            menu.showAtMouseEvent(e);
-        });
 
         this.addAction("calendar-range", "Select date range", (e) => {
             const menu = new Menu();

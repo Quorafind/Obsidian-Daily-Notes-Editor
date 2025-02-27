@@ -102,7 +102,7 @@ export class FileManager {
         if (!this.options.target || !this.options.app) return;
 
         // Get all files in the vault
-        const allFiles = this.options.app.vault.getFiles();
+        const allFiles = this.options.app.vault.getMarkdownFiles();
 
         // Filter files by folder path
         this.allFiles = allFiles.filter((file) => {
@@ -124,7 +124,7 @@ export class FileManager {
         if (!this.options.target || !this.options.app) return;
 
         // Get all files with the specified tag
-        const allFiles = this.options.app.vault.getFiles();
+        const allFiles = this.options.app.vault.getMarkdownFiles();
         const targetTag = this.options.target.startsWith("#")
             ? this.options.target
             : "#" + this.options.target;
