@@ -63,7 +63,7 @@ export class DailyNoteView extends ItemView {
 
     getIcon(): string {
         if (this.selectionMode === "daily") {
-            return "daily-note";
+            return "calendar";
         } else if (this.selectionMode === "folder") {
             return "folder";
         } else if (this.selectionMode === "tag") {
