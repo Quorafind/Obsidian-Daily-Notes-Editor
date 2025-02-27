@@ -220,7 +220,7 @@ export class DailyNoteEditor extends nosuper(HoverPopover) {
         if (this.shouldShow()) {
             if (this.state === PopoverState.Hiding) {
                 this.state = PopoverState.Shown;
-                clearTimeout(this.timer);
+                window.clearTimeout(this.timer);
             }
         } else {
             if (this.state === PopoverState.Showing) {
@@ -390,7 +390,7 @@ export class DailyNoteEditor extends nosuper(HoverPopover) {
         // A timer might be pending to call show() for the first time, make sure
         // it doesn't bring us back up after we close
         if (this.timer) {
-            clearTimeout(this.timer);
+            window.clearTimeout(this.timer);
             this.timer = 0;
         }
 

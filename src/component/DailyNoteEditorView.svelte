@@ -23,6 +23,9 @@
 
     let renderedFiles: TFile[] = [];
     let filteredFiles: TFile[] = [];
+    
+    // Track which notes are in viewport
+    let visibleNotes: Set<string> = new Set();
 
     let hasMore = true;
     let firstLoaded = true;
@@ -55,6 +58,7 @@
         
         // Reset rendered files and start filling viewport again
         renderedFiles = [];
+        visibleNotes.clear();
         filteredFiles = fileManager.getFilteredFiles();
         hasMore = filteredFiles.length > 0;
         firstLoaded = true;
@@ -124,7 +128,7 @@
     }
 
     function infiniteHandler() {
-        console.log("infiniteHandler");
+        if (leaf.height === 0) return;
         if (!fileManager || !hasMore) return;
         if (filteredFiles.length === 0) {
             hasMore = false;
@@ -143,8 +147,30 @@
     }
 
     function ensureViewFilled() {
-        if (loaderRef && loaderRef.getBoundingClientRect().top < leaf.view.contentEl.innerHeight) {
+        if (!loaderRef) return;
+        
+        // Get the loader element's position
+        const loaderRect = loaderRef.getBoundingClientRect();
+        
+        // Get the viewport height
+        const viewportHeight = window.innerHeight;
+        
+        // Get the content element's height (with fallback)
+        const contentHeight = leaf.view.contentEl.clientHeight || leaf.view.contentEl.innerHeight || viewportHeight;
+        
+        // Use the maximum of viewport height and content height with a buffer
+        const effectiveHeight = Math.max(viewportHeight, contentHeight) + 200;
+        
+        // Check if we need to load more content
+        if (loaderRect.top < effectiveHeight) {
             infiniteHandler();
+            
+            // Recursively check again after a short delay to ensure the view is filled
+            window.setTimeout(() => {
+                if (hasMore && loaderRef && loaderRef.getBoundingClientRect().top < effectiveHeight) {
+                    ensureViewFilled();
+                }
+            }, 50);
         }
     }
 
@@ -152,6 +178,9 @@
         const newNote = await fileManager.createNewDailyNote();
         if (newNote) {
             renderedFiles = [newNote, ...renderedFiles];
+            // Automatically mark the new note as visible
+            visibleNotes.add(newNote.path);
+            visibleNotes = visibleNotes;
         }
     }
 
@@ -173,6 +202,9 @@
             if (filteredFiles.some(f => f.basename === file.basename) && 
                 !renderedFiles.some(f => f.basename === file.basename)) {
                 renderedFiles = [file, ...renderedFiles];
+                // Automatically mark the new note as visible
+                visibleNotes.add(file.path);
+                visibleNotes = visibleNotes;
             }
         } else {
             // For folder and tag modes, we can simply update the rendered files
@@ -187,6 +219,22 @@
         renderedFiles = renderedFiles.filter((dailyNote) => {
             return dailyNote.basename !== file.basename;
         });
+        
+        // Remove from visible notes
+        if (visibleNotes.has(file.path)) {
+            visibleNotes.delete(file.path);
+            visibleNotes = visibleNotes;
+        }
+    }
+    
+    // Handle note visibility change
+    function handleNoteVisibilityChange(file: TFile, isVisible: boolean) {
+        if (isVisible) {
+            visibleNotes.add(file.path);
+        } else {
+            visibleNotes.delete(file.path);
+        }
+        visibleNotes = visibleNotes;
     }
 </script>
 
@@ -205,8 +253,19 @@
             </div>
         </div>
     {/if}
-    {#each renderedFiles as file (file)}
-        <DailyNote file={file} plugin={plugin} leaf={leaf}/>
+    {#each renderedFiles as file (file.path)}
+        <div class="daily-note-wrapper" use:inview={{
+            rootMargin: "80%",
+            unobserveOnEnter: false,
+            root: leaf.view.contentEl
+        }} on:inview_change={({ detail }) => handleNoteVisibilityChange(file, detail.inView)}>
+            <DailyNote 
+                file={file} 
+                plugin={plugin} 
+                leaf={leaf} 
+                shouldRender={visibleNotes.has(file.path)}
+            />
+        </div>
     {/each}
     <div bind:this={loaderRef} class="dn-view-loader" use:inview={{
         root: leaf.view.containerEl
@@ -259,5 +318,9 @@
         margin-left: auto;
         margin-right: auto;
         text-align: center;
+    }
+    
+    .daily-note-wrapper {
+        width: 100%;
     }
 </style>

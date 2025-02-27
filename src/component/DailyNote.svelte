@@ -1,59 +1,153 @@
 <script lang="ts">
     import type DailyNoteViewPlugin from "../dailyNoteViewIndex";
-    import { TAbstractFile, TFile, WorkspaceLeaf } from "obsidian";
+    import { MarkdownView, TAbstractFile, TFile, WorkspaceLeaf } from "obsidian";
     import { spawnLeafView } from "../leafView";
-    import { inview } from "svelte-inview";
     import { genId } from "../utils/utils";
+    import { onDestroy, onMount } from "svelte";
 
     export let file: TAbstractFile;
     export let plugin: DailyNoteViewPlugin;
     export let leaf: WorkspaceLeaf;
+    export let shouldRender: boolean = true;
 
     let editorEl: HTMLElement;
+    let containerEl: HTMLElement;
     let title: string;
 
     let rendered: boolean = false;
-    let id: string;
+    let id: string = genId(8);
 
     let createdLeaf: WorkspaceLeaf;
-    // let dnEditor: DailyNoteEditor;
+    let unloadTimeout: number | null = null;
+    let editorHeight: number = 100; // Default minimum height
+    
+    // Track if this component is being destroyed
+    let isDestroying = false;
 
-    $: if (editorEl) {
+    onMount(() => {
+        if (file instanceof TFile) {
+            title = file.basename;
+        }
+    });
+
+    $: if (editorEl && shouldRender && !rendered) {
         showEditor();
-        id = genId(8);
+    } else if (editorEl && !shouldRender && rendered) {
+        scheduleUnload();
     }
 
+    onDestroy(() => {
+        isDestroying = true;
+        if (unloadTimeout) {
+            window.clearTimeout(unloadTimeout);
+        }
+        if (rendered && createdLeaf) {
+            unloadEditor();
+        }
+    });
 
     function showEditor() {
         if (!(file instanceof TFile)) return;
         if (rendered) return;
+        if (isDestroying) return;
+        
+        // Clear any pending unload
+        if (unloadTimeout) {
+            window.clearTimeout(unloadTimeout);
+            unloadTimeout = null;
+        }
 
-        title = file.basename;
+        try {
+            // Use safe type checking before accessing basename
+            const fileName = file instanceof TFile ? file.basename : "unknown";
+            console.log(`Loading editor for ${fileName}`);
+            
+            [createdLeaf] = spawnLeafView(plugin, editorEl, leaf);
+            createdLeaf.setPinned(true);
 
-        [createdLeaf] = spawnLeafView(plugin, editorEl, leaf);
-        createdLeaf.setPinned(true);
-
-        createdLeaf.setViewState({
-            type: "markdown",
-            state: {
-                file: file.path,
-                mode: "source",
-                source: false,
-                backlinks: !plugin.settings.hideBacklinks,
-                backlinkOpts: {
-                    collapseAll: false,
-                    extraContext: false,
-                    sortOrder: "alphabetical",
-                    showSearch: false,
-                    searchQuery: "",
-                    backlinkCollapsed: false,
-                    unlinkedCollapsed: true
+            createdLeaf.setViewState({
+                type: "markdown",
+                state: {
+                    file: file.path,
+                    mode: "source",
+                    source: false,
+                    backlinks: !plugin.settings.hideBacklinks,
+                    backlinkOpts: {
+                        collapseAll: false,
+                        extraContext: false,
+                        sortOrder: "alphabetical",
+                        showSearch: false,
+                        searchQuery: "",
+                        backlinkCollapsed: false,
+                        unlinkedCollapsed: true
+                    }
                 }
-            }
-        });
-        createdLeaf.parentLeaf = leaf;
+            });
+            createdLeaf.parentLeaf = leaf;
 
-        rendered = true;
+            rendered = true;
+            
+            // Set a small timeout to allow the editor to render completely
+            const timeout = window.setTimeout(() => {
+                if (createdLeaf && containerEl) {
+                    // Get the actual height of the editor content
+                    if(!(createdLeaf.view instanceof MarkdownView)) return; 
+                    // @ts-ignore
+                    const actualHeight = createdLeaf.view.editMode?.editor?.cm?.dom.innerHeight;
+                    if (actualHeight > 0) {
+                        editorHeight = actualHeight;
+                        // Apply the height to the container
+                        containerEl.style.minHeight = `${editorHeight}px`;
+
+                        window.clearTimeout(timeout);
+                    }
+                }
+            }, 400);
+        } catch (error) {
+            console.error("Error creating leaf view:", error);
+        }
+    }
+    
+    // Schedule unloading the editor with a delay to prevent flickering
+    function scheduleUnload() {
+        if (unloadTimeout) {
+            window.clearTimeout(unloadTimeout);
+        }
+        
+        // Use a longer timeout to prevent frequent load/unload cycles
+        unloadTimeout = window.setTimeout(() => {
+            if (!shouldRender && rendered) {
+                unloadEditor();
+            }
+        }, 1000); // 1 second delay before unloading
+    }
+    
+    // Unload the editor to free up resources
+    function unloadEditor() {
+        if (!rendered || !createdLeaf) return;
+        
+        try {
+            // Use safe type checking before accessing basename
+            const fileName = file instanceof TFile ? file.basename : "unknown";
+            console.log(`Unloading editor for ${fileName}`);
+            
+            // Detach the leaf
+            if (createdLeaf.detach) {
+                createdLeaf.detach();
+            }
+            
+            // Clear the editor element
+            if (editorEl) {
+                editorEl.empty();
+            }
+            
+            rendered = false;
+            
+            // Keep the container height to prevent scroll jumps
+            // The height will be maintained by the min-height we set earlier
+        } catch (error) {
+            console.error("Error unloading editor:", error);
+        }
     }
 
     function handleFileIconClick() {
@@ -63,32 +157,16 @@
         } else plugin.app.workspace.getLeaf(false).openFile(file);
     }
 
-    // function hideHandler(event: any) {
-    //     console.log(event);
-    //     const {scrollDirection} = event.detail;
-    //     if (scrollDirection.vertical === "up") {
-    //         rendered = false;
-    //         dnEditor.hide();
-    //     }
-    // }
-
-    function showHandler(event: any) {
-        const {scrollDirection} = event.detail;
-        if (scrollDirection.vertical === "down") {
-            showEditor();
-        }
-    }
-
     function handleEditorClick() {
         // @ts-ignore
-        const editor = createdLeaf.view.editMode?.editor;
-        if (!editor.hasFocus()) {
+        const editor = createdLeaf?.view?.editMode?.editor;
+        if (editor && !editor.hasFocus()) {
             editor.focus();
         }
     }
 </script>
 
-<div class="daily-note-container" data-id='dn-editor-{id}'>
+<div class="daily-note-container" data-id='dn-editor-{file.path}' bind:this={containerEl} style="min-height: {editorHeight}px;">
     <div class="daily-note">
         {#if title}
             <div class="daily-note-title inline-title">
@@ -97,13 +175,16 @@
                 <span role="link" class="clickable-link" on:click={handleFileIconClick} data-title={title}>{title}</span>
             </div>
         {/if}
-        <div class="daily-note-editor"  aria-hidden="true"  bind:this={editorEl} data-title={title} on:click={handleEditorClick}></div>
+        <div class="daily-note-editor" aria-hidden="true" bind:this={editorEl} data-title={title} on:click={handleEditorClick}>
+            {#if !rendered && shouldRender}
+                <div class="editor-placeholder">Loading...</div>
+            {/if}
+            {#if !shouldRender && !rendered}
+                <div class="editor-placeholder">Scroll to view content</div>
+            {/if}
+        </div>
     </div>
-    <div use:inview={{rootMargin: "20%"}} on:inview_enter={showHandler}/>
 </div>
-<!--<div class="dn-card">-->
-<!--    -->
-<!--</div>-->
 
 <style>
     .daily-note {
@@ -140,5 +221,14 @@
     .clickable-link:hover {
         color: var(--color-accent);
         text-decoration: underline;
+    }
+    
+    .editor-placeholder {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100px;
+        color: var(--text-muted);
+        font-style: italic;
     }
 </style>
