@@ -157,7 +157,7 @@ export default class DailyNoteViewPlugin extends Plugin {
                         if (t?.VIEW_TYPE === "markdown") {
                             const activeLeaf = this.activeLeaf;
                             if (activeLeaf?.view instanceof DailyNoteView) {
-                                return activeLeaf.view;
+                                return activeLeaf.view.editMode;
                             }
                         }
                     }
