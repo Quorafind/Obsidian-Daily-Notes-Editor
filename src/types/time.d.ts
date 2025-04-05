@@ -12,4 +12,10 @@ export type TimeRange =
 
 export type SelectionMode = "daily" | "folder" | "tag";
 
-export type TimeField = "ctime" | "mtime" | "ctimeReverse" | "mtimeReverse";
+export type TimeField =
+    | "ctime"
+    | "mtime"
+    | "ctimeReverse"
+    | "mtimeReverse"
+    | "name"
+    | "nameReverse";

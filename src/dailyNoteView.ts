@@ -204,7 +204,6 @@ export class DailyNoteView extends ItemView {
                 menu.addItem((item) => {
                     item.setTitle(title);
                     item.setChecked(this.timeField === field);
-                    item.setDisabled(this.selectionMode === "daily");
                     item.onClick(() => {
                         this.setTimeField(field);
                     });
@@ -215,6 +214,9 @@ export class DailyNoteView extends ItemView {
             addTimeFieldOption("Modification Time", "mtime");
             addTimeFieldOption("Creation Time (Reverse)", "ctimeReverse");
             addTimeFieldOption("Modification Time (Reverse)", "mtimeReverse");
+            // Add new options for sorting by name
+            addTimeFieldOption("Name (A-Z)", "name");
+            addTimeFieldOption("Name (Z-A)", "nameReverse");
 
             menu.showAtMouseEvent(e);
         });
