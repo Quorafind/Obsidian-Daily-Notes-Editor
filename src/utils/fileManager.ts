@@ -278,6 +278,9 @@ export class FileManager {
             return true;
         }
 
+        // Refresh the daily notes cache to ensure we have the latest data
+        this.cacheDailyNotes = getAllDailyNotes();
+
         // @ts-ignore
         const currentDate = moment();
         const currentDailyNote = getDailyNote(
@@ -288,6 +291,15 @@ export class FileManager {
         if (!currentDailyNote) {
             this.hasCurrentDay = false;
             return false;
+        }
+
+        // Check if we need to update the allFiles and filteredFiles arrays
+        if (this.hasCurrentDay === false) {
+            // We didn't have the current day's note before, but now we do
+            // So we need to update our file lists
+            this.allFiles = [];
+            this.fetchDailyNotes();
+            this.filterFilesByRange();
         }
 
         this.hasCurrentDay = true;

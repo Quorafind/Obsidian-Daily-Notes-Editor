@@ -2,7 +2,6 @@
     import type DailyNoteViewPlugin from "../dailyNoteViewIndex";
     import { MarkdownView, TAbstractFile, TFile, WorkspaceLeaf } from "obsidian";
     import { spawnLeafView } from "../leafView";
-    import { genId } from "../utils/utils";
     import { onDestroy, onMount } from "svelte";
 
     export let file: TAbstractFile;
@@ -15,7 +14,6 @@
     let title: string;
 
     let rendered: boolean = false;
-    let id: string = genId(8);
 
     let createdLeaf: WorkspaceLeaf;
     let unloadTimeout: number | null = null;

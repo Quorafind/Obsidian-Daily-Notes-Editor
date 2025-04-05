@@ -9,7 +9,6 @@ import {
     Modal,
     App,
     ButtonComponent,
-    Notice,
 } from "obsidian";
 import { TimeRange, TimeField } from "./types/time";
 import DailyNoteEditorView from "./component/DailyNoteEditorView.svelte";
@@ -358,6 +357,31 @@ export class DailyNoteView extends ItemView {
                     this.leaf.togglePinned();
                 });
             });
+        }
+    }
+
+    /**
+     * Refresh the view for a new day
+     * This is called when the date changes (e.g., after midnight)
+     */
+    public refreshForNewDay(): void {
+        // If we're in daily note mode, we need to refresh the view
+        // to show the current day's note
+        if (this.selectionMode === "daily") {
+            // Reset the view properties to trigger a reload
+            if (this.view) {
+                // Tell the Svelte component to check for daily notes
+                this.view.check();
+
+                // Update the view to get the latest files
+                this.view.tick();
+
+                // Force a refresh of the file list
+                this.view.$set({
+                    selectedRange: this.selectedDaysRange,
+                    customRange: this.customRange,
+                });
+            }
         }
     }
 }

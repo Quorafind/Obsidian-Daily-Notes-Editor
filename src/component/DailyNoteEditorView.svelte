@@ -185,11 +185,35 @@
     }
 
     export function tick() {
+        // First check if we need to update for a new day
+        check();
+        
+        // Force a refresh of the view
         renderedFiles = renderedFiles;
     }
 
     export function check() {
+        // Check if there's a new daily note (e.g., after day change)
+        const hadDailyNote = fileManager.hasCurrentDayNote();
         fileManager.checkDailyNote();
+        const hasDailyNote = fileManager.hasCurrentDayNote();
+        
+        // If the daily note status changed (e.g., we just crossed midnight),
+        // refresh the file list to ensure we show the current day's daily note
+        if (hadDailyNote !== hasDailyNote || 
+            (selectionMode === "daily" && selectedRange !== "all")) {
+            // Get updated filtered files
+            filteredFiles = fileManager.getFilteredFiles();
+            
+            // Reset rendered files and start filling viewport again if in daily mode
+            if (selectionMode === "daily") {
+                renderedFiles = [];
+                visibleNotes.clear();
+                hasMore = filteredFiles.length > 0;
+                firstLoaded = true;
+                startFillViewport();
+            }
+        }
     }
 
     export function fileCreate(file: TFile) {

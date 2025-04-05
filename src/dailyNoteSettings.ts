@@ -5,6 +5,7 @@ export interface DailyNoteSettings {
     hideFrontmatter: boolean;
     hideBacklinks: boolean;
     createAndOpenOnStartup: boolean;
+    useArrowUpOrDownToNavigate: boolean;
 
     preset: {
         type: "folder" | "tag";
@@ -16,6 +17,7 @@ export const DEFAULT_SETTINGS: DailyNoteSettings = {
     hideFrontmatter: false,
     hideBacklinks: false,
     createAndOpenOnStartup: false,
+    useArrowUpOrDownToNavigate: false,
     preset: [],
 };
 
@@ -101,6 +103,17 @@ export class DailyNoteSettingTab extends PluginSettingTab {
                     .setValue(settings.createAndOpenOnStartup)
                     .onChange(async (value) => {
                         this.plugin.settings.createAndOpenOnStartup = value;
+                        this.applySettingsUpdate();
+                    })
+            );
+
+        new Setting(containerEl)
+            .setName("Use arrow up/down key to navigate between notes")
+            .addToggle((toggle) =>
+                toggle
+                    .setValue(settings.useArrowUpOrDownToNavigate)
+                    .onChange(async (value) => {
+                        this.plugin.settings.useArrowUpOrDownToNavigate = value;
                         this.applySettingsUpdate();
                     })
             );

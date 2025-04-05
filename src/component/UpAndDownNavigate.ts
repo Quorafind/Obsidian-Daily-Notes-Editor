@@ -1,11 +1,9 @@
 import {
     App,
     Editor,
-    editorEditorField,
     editorInfoField,
     EditorPosition,
     MarkdownView,
-    Plugin,
     TFile,
     WorkspaceLeaf,
 } from "obsidian";
@@ -34,7 +32,7 @@ function getEditor(leaf: WorkspaceLeaf): Editor | null {
 /**
  * Get the CodeMirror editor instance from a leaf
  */
-function getEditorView(leaf: WorkspaceLeaf): EditorView | null {
+export function getEditorView(leaf: WorkspaceLeaf): EditorView | null {
     if (!leaf) return null;
 
     const view = leaf.view;
@@ -208,10 +206,7 @@ export function createUpDownNavigationExtension(
         {
             key: "ArrowUp",
             run: (view) => {
-                // Get the current cursor position
-                const pos = view.state.selection.main.head;
-                const line = view.state.doc.lineAt(pos);
-
+                if (!view.state) return false;
                 // @ts-ignore
                 const infoView = view.state.field(editorInfoField);
 
@@ -240,6 +235,7 @@ export function createUpDownNavigationExtension(
         {
             key: "ArrowDown",
             run: (view) => {
+                if (!view.state) return false;
                 // Get the current cursor position
                 const pos = view.state.selection.main.head;
                 const line = view.state.doc.lineAt(pos);

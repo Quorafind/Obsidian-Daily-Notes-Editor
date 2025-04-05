@@ -20,7 +20,7 @@ import {
     DailyNoteSettingTab,
     DEFAULT_SETTINGS,
 } from "./dailyNoteSettings";
-import { TimeRange, TimeField } from "./types/time";
+import { TimeField } from "./types/time";
 import {
     getAllDailyNotes,
     getDailyNote,
@@ -33,6 +33,7 @@ import { DAILY_NOTE_VIEW_TYPE, DailyNoteView } from "./dailyNoteView";
 export default class DailyNoteViewPlugin extends Plugin {
     private view: DailyNoteView;
     lastActiveFile: TFile;
+    private lastCheckedDay: string;
 
     settings: DailyNoteSettings;
 
@@ -43,11 +44,17 @@ export default class DailyNoteViewPlugin extends Plugin {
         this.patchWorkspaceLeaf();
         addIconList();
 
+        this.lastCheckedDay = moment().format("YYYY-MM-DD");
+
         // Register the up and down navigation extension
-        this.registerEditorExtension([
-            createUpDownNavigationExtension({ app: this.app, plugin: this }),
-            // setActiveEditorExt({ app: this.app, plugin: this }),
-        ]);
+        this.settings.useArrowUpOrDownToNavigate &&
+            this.registerEditorExtension([
+                createUpDownNavigationExtension({
+                    app: this.app,
+                    plugin: this,
+                }),
+                // setActiveEditorExt({ app: this.app, plugin: this }),
+            ]);
 
         this.registerView(
             DAILY_NOTE_VIEW_TYPE,
@@ -81,6 +88,11 @@ export default class DailyNoteViewPlugin extends Plugin {
                 await this.openDailyNoteEditor();
             });
         }
+
+        // Also check periodically (every 15 minutes) for day changes
+        this.registerInterval(
+            window.setInterval(this.checkDayChange.bind(this), 1000 * 60 * 15)
+        );
 
         this.app.workspace.on("file-menu", (menu, file, source, leaf) => {
             if (file instanceof TFolder) {
@@ -314,5 +326,27 @@ export default class DailyNoteViewPlugin extends Plugin {
 
     async saveSettings() {
         await this.saveData(this.settings);
+    }
+
+    private async checkDayChange(): Promise<void> {
+        const currentDay = moment().format("YYYY-MM-DD");
+
+        if (currentDay !== this.lastCheckedDay) {
+            this.lastCheckedDay = currentDay;
+            console.log("Day changed, updating daily notes view");
+
+            await this.ensureTodaysDailyNoteExists();
+
+            const dailyNoteLeaves =
+                this.app.workspace.getLeavesOfType(DAILY_NOTE_VIEW_TYPE);
+            if (dailyNoteLeaves.length > 0) {
+                for (const leaf of dailyNoteLeaves) {
+                    const view = leaf.view as DailyNoteView;
+                    if (view) {
+                        view.refreshForNewDay();
+                    }
+                }
+            }
+        }
     }
 }
