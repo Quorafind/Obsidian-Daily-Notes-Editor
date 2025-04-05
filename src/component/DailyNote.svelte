@@ -31,6 +31,8 @@
         }
     });
 
+    console.log(shouldRender, rendered)
+
     $: if (editorEl && shouldRender && !rendered) {
         showEditor();
     } else if (editorEl && !shouldRender && rendered) {
@@ -153,7 +155,7 @@
 
     function handleFileIconClick() {
         if (!(file instanceof TFile)) return;
-        if (leaf) {
+        if (leaf && !(leaf as any)?.pinned) {
             leaf.openFile(file);
         } else plugin.app.workspace.getLeaf(false).openFile(file);
     }

@@ -187,6 +187,8 @@
     export function tick() {
         // First check if we need to update for a new day
         check();
+
+        console.log("hello")
         
         // Force a refresh of the view
         renderedFiles = renderedFiles;
@@ -253,6 +255,7 @@
     
     // Handle note visibility change
     function handleNoteVisibilityChange(file: TFile, isVisible: boolean) {
+        console.log("inview", isVisible)
         if (isVisible) {
             visibleNotes.add(file.path);
         } else {
