@@ -341,6 +341,22 @@ export class DailyNoteView extends ItemView {
             menu.showAtMouseEvent(e as MouseEvent);
         });
 
+        this.addAction("refresh", "Refresh", () => {
+            if (this.view) {
+                // Tell the Svelte component to check for daily notes
+                this.view.check();
+
+                // Update the view to get the latest files
+                this.view.tick();
+
+                // Force a refresh of the file list
+                this.view.$set({
+                    selectedRange: this.selectedDaysRange,
+                    customRange: this.customRange,
+                });
+            }
+        });
+
         this.app.vault.on("create", this.onFileCreate);
         this.app.vault.on("delete", this.onFileDelete);
     }
