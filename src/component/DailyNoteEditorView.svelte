@@ -187,8 +187,6 @@
     export function tick() {
         // First check if we need to update for a new day
         check();
-
-        console.log("hello")
         
         // Force a refresh of the view
         renderedFiles = renderedFiles;
